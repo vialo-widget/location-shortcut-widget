@@ -2,17 +2,23 @@ package com.navigo.app
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetProvider
 import org.json.JSONArray
 import kotlin.math.ceil
 import kotlin.math.min
+
+/** SharedPreferences file name carried over from the Flutter build — the
+ *  widget reads its data here so existing pinned widgets keep working through
+ *  the rewrite. Native code writes to this same file in Phase 5. */
+private const val WIDGET_PREFS = "HomeWidgetPreferences"
 
 /**
  * NaviGo home screen widget — displays up to 6 location shortcuts.
@@ -25,7 +31,7 @@ import kotlin.math.min
  * The widget is fully resizable — icons and layout adapt to the widget boundaries.
  * Tiles are kept square and capped at a maximum size.
  */
-class ShortcutWidgetProvider : HomeWidgetProvider() {
+class ShortcutWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val MAX_CELL_DP = 120f
@@ -179,13 +185,13 @@ class ShortcutWidgetProvider : HomeWidgetProvider() {
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray,
-        widgetData: android.content.SharedPreferences
+        appWidgetIds: IntArray
     ) {
+        val prefs = context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val (w, h) = getWidgetSizeDp(options)
-            val views = buildRemoteViews(context, widgetData, w, h)
+            val views = buildRemoteViews(context, prefs, w, h)
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }
@@ -197,7 +203,7 @@ class ShortcutWidgetProvider : HomeWidgetProvider() {
         newOptions: Bundle
     ) {
         val (w, h) = getWidgetSizeDp(newOptions)
-        val prefs = context.getSharedPreferences("HomeWidgetPreferences", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
         val views = buildRemoteViews(context, prefs, w, h)
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

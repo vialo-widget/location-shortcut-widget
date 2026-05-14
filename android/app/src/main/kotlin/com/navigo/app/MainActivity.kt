@@ -3,65 +3,40 @@ package com.navigo.app
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.verify.domain.DomainVerificationManager
 import android.content.pm.verify.domain.DomainVerificationUserState
+import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
-import android.util.Base64
 import android.util.Log
-import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MethodChannel
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.navigo.app.deeplink.DeepLinkBus
+import com.navigo.app.ui.NaviGoApp
 import java.security.MessageDigest
 
-class MainActivity : FlutterActivity() {
-    private val WIDGET_CHANNEL = "com.navigo.app/widget"
-    private val DEEPLINK_CHANNEL = "com.navigo.app/deeplink"
+class MainActivity : ComponentActivity() {
 
-    private var deepLinkSink: EventChannel.EventSink? = null
-    private var pendingDeepLink: String? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)
-
-        // Log the signing certificate SHA-256 so we can add it to assetlinks.json
         logSigningFingerprint()
-
-        // Widget method channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "requestPinWidget" -> result.success(requestPinWidget())
-                    "isWidgetPinned" -> result.success(isWidgetPinned())
-                    "getSigningFingerprint" -> result.success(getSigningFingerprint())
-                    "isAppLinkVerified" -> result.success(isAppLinkVerified())
-                    "openAppLinkSettings" -> {
-                        openAppLinkSettings()
-                        result.success(true)
-                    }
-                    else -> result.notImplemented()
-                }
-            }
-
-        // Deep link event channel — streams URIs to Flutter
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, DEEPLINK_CHANNEL)
-            .setStreamHandler(object : EventChannel.StreamHandler {
-                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    deepLinkSink = events
-                    // Flush any link that arrived before Flutter was ready
-                    pendingDeepLink?.let {
-                        events?.success(it)
-                        pendingDeepLink = null
-                    }
-                }
-                override fun onCancel(arguments: Any?) {
-                    deepLinkSink = null
-                }
-            })
-
-        // Handle the intent that launched the activity (cold start)
         handleIntent(intent)
+
+        setContent {
+            NaviGoApp(
+                onRequestPinWidget = ::requestPinWidget,
+                isWidgetPinned = ::isWidgetPinned,
+                isAppLinkVerified = ::isAppLinkVerified,
+                openAppLinkSettings = ::openAppLinkSettings,
+            )
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -70,110 +45,96 @@ class MainActivity : FlutterActivity() {
         handleIntent(intent)
     }
 
+    /**
+     * Push deep-link URIs into [DeepLinkBus] for the Compose layer to consume.
+     * Handles both the custom `navigo://add?…` scheme and verified app links
+     * to `https://navigo-widget.github.io/…`, normalising the latter into the
+     * custom-scheme form.
+     */
     private fun handleIntent(intent: Intent?) {
         val data = intent?.data ?: return
-        val uri = data.toString()
+        val uriStr = data.toString()
 
-        val isCustomScheme = uri.startsWith("navigo://")
-        val isAppLink = uri.startsWith("https://navigo-widget.github.io")
-
+        val isCustomScheme = uriStr.startsWith("navigo://")
+        val isAppLink = uriStr.startsWith("https://navigo-widget.github.io")
         if (!isCustomScheme && !isAppLink) return
 
-        val deepLinkUri = if (isAppLink) {
+        val normalised = if (isAppLink) {
             val params = data.query ?: ""
-            "navigo://add?$params"
+            Uri.parse("navigo://add?$params")
         } else {
-            uri
+            data
         }
-
-        val sink = deepLinkSink
-        if (sink != null) {
-            sink.success(deepLinkUri)
-        } else {
-            pendingDeepLink = deepLinkUri
-        }
+        DeepLinkBus.publish(normalised)
         intent.data = null
-    }
-
-    /** Log the SHA-256 fingerprint of this APK's signing certificate. */
-    private fun logSigningFingerprint() {
-        val fp = getSigningFingerprint()
-        if (fp != null) {
-            Log.i("NaviGo", "APK signing SHA-256: $fp")
-            Log.i("NaviGo", "Add this to assetlinks.json if App Links aren't auto-verifying")
-        }
-    }
-
-    /** Get the SHA-256 fingerprint of this APK's signing certificate. */
-    private fun getSigningFingerprint(): String? {
-        return try {
-            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageManager.getPackageInfo(packageName,
-                    android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES)
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.getPackageInfo(packageName,
-                    android.content.pm.PackageManager.GET_SIGNATURES)
-            }
-
-            val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageInfo.signingInfo?.apkContentsSigners
-            } else {
-                @Suppress("DEPRECATION")
-                packageInfo.signatures
-            }
-
-            val sig = signatures?.firstOrNull() ?: return null
-            val digest = MessageDigest.getInstance("SHA-256")
-            val hash = digest.digest(sig.toByteArray())
-            hash.joinToString(":") { "%02X".format(it) }
-        } catch (e: Exception) {
-            Log.e("NaviGo", "Failed to get signing fingerprint", e)
-            null
-        }
-    }
-
-    /** Check if App Links are verified for our domain (Android 12+). */
-    private fun isAppLinkVerified(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            // Before Android 12, autoVerify just works if assetlinks.json matches
-            return true
-        }
-        return try {
-            val manager = getSystemService(DomainVerificationManager::class.java)
-            val userState = manager.getDomainVerificationUserState(packageName) ?: return false
-            val domain = userState.hostToStateMap["navigo-widget.github.io"]
-            domain == DomainVerificationUserState.DOMAIN_STATE_VERIFIED ||
-                domain == DomainVerificationUserState.DOMAIN_STATE_SELECTED
-        } catch (e: Exception) {
-            Log.e("NaviGo", "Failed to check app link verification", e)
-            false
-        }
-    }
-
-    /** Open the system "Open by default" settings for this app. */
-    private fun openAppLinkSettings() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val intent = Intent(
-                Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                android.net.Uri.parse("package:$packageName")
-            )
-            startActivity(intent)
-        }
     }
 
     private fun requestPinWidget(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
         val appWidgetManager = getSystemService(AppWidgetManager::class.java) ?: return false
         if (!appWidgetManager.isRequestPinAppWidgetSupported) return false
-        val widgetProvider = ComponentName(this, ShortcutWidgetProvider::class.java)
-        return appWidgetManager.requestPinAppWidget(widgetProvider, null, null)
+        val provider = ComponentName(this, ShortcutWidgetProvider::class.java)
+        return appWidgetManager.requestPinAppWidget(provider, null, null)
     }
 
     private fun isWidgetPinned(): Boolean {
         val appWidgetManager = AppWidgetManager.getInstance(this)
-        val widgetProvider = ComponentName(this, ShortcutWidgetProvider::class.java)
-        val widgetIds = appWidgetManager.getAppWidgetIds(widgetProvider)
-        return widgetIds.isNotEmpty()
+        val provider = ComponentName(this, ShortcutWidgetProvider::class.java)
+        return appWidgetManager.getAppWidgetIds(provider).isNotEmpty()
+    }
+
+    private fun isAppLinkVerified(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+        return try {
+            val manager = getSystemService(DomainVerificationManager::class.java)
+            val state = manager.getDomainVerificationUserState(packageName) ?: return false
+            val domain = state.hostToStateMap["navigo-widget.github.io"]
+            domain == DomainVerificationUserState.DOMAIN_STATE_VERIFIED ||
+                domain == DomainVerificationUserState.DOMAIN_STATE_SELECTED
+        } catch (e: Exception) {
+            Log.e(TAG, "App-link verification check failed", e)
+            false
+        }
+    }
+
+    private fun openAppLinkSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val intent = Intent(
+            Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
+            Uri.parse("package:$packageName"),
+        )
+        startActivity(intent)
+    }
+
+    private fun logSigningFingerprint() {
+        val fp = signingFingerprint() ?: return
+        Log.i(TAG, "APK signing SHA-256: $fp")
+    }
+
+    private fun signingFingerprint(): String? = try {
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+        }
+        val sig = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.signingInfo?.apkContentsSigners?.firstOrNull()
+        } else {
+            @Suppress("DEPRECATION")
+            info.signatures?.firstOrNull()
+        }
+        sig?.let {
+            MessageDigest.getInstance("SHA-256")
+                .digest(it.toByteArray())
+                .joinToString(":") { b -> "%02X".format(b) }
+        }
+    } catch (e: Exception) {
+        Log.e(TAG, "Signing fingerprint lookup failed", e)
+        null
+    }
+
+    private companion object {
+        const val TAG = "NaviGo"
     }
 }

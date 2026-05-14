@@ -1,13 +1,24 @@
-# Flutter
--keep class io.flutter.app.** { *; }
--keep class io.flutter.plugin.** { *; }
--keep class io.flutter.util.** { *; }
--keep class io.flutter.view.** { *; }
--keep class io.flutter.** { *; }
--keep class io.flutter.plugins.** { *; }
+# Keep annotations needed by runtime reflection (serialization, Room).
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
 
-# Keep annotations
--keepattributes *Annotation*
+# kotlinx.serialization — keep generated serializers + companions.
+-keepclassmembers class **$Companion {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+    static <1>$Companion Companion;
+    static kotlinx.serialization.KSerializer serializer(...);
+}
 
-# Play Core (referenced by Flutter engine for deferred components)
--dontwarn com.google.android.play.core.**
+# Ktor (uses reflection for the engine factory in JVM mode).
+-dontwarn io.ktor.**
+-dontwarn org.slf4j.**
+
+# Room — generated DAO impls are referenced reflectively.
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-dontwarn androidx.room.paging.**
+
+# Compose tooling (debug-only previews).
+-dontwarn androidx.compose.ui.tooling.**
