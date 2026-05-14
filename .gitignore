@@ -1,14 +1,12 @@
-# Flutter/Dart
-.dart_tool/
-.packages
+# Build outputs
 build/
-.flutter-plugins
-.flutter-plugins-dependencies
-*.iml
+*.apk
+*.aab
 
 # IDE
 .idea/
 .vscode/
+*.iml
 *.swp
 *.swo
 
@@ -19,29 +17,11 @@ android/build/
 android/app/build/
 android/local.properties
 android/captures/
-# Gradle wrapper IS checked in for the native Android project.
-!android/gradlew
-!android/gradlew.bat
-!android/gradle/
-*.apk
-*.aab
-
-# iOS
-ios/Pods/
-ios/.symlinks/
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
 
 # Secrets
 .env
 *.jks
 *.keystore
-google_maps_api_key.txt
-
-# Generated
-*.g.dart
-*.freezed.dart
-.build/
 
 # OS
 .DS_Store
@@ -49,9 +29,3 @@ Thumbs.db
 
 # Worktrees
 .claude/worktrees/
-
-# Generated plugin registrant
-android/app/src/main/java/io/flutter/plugins/
-
-# Lock file
-pubspec.lock

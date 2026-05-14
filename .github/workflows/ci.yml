@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: Test & Build
+  build:
+    name: Build APK
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,38 +21,25 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.27.0'
-          channel: 'stable'
-          cache: true
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Analyze code
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
-
-      - name: Build APK
-        run: flutter build apk --release --target-platform android-arm64 --dart-define=PLACES_API_KEY=${{ secrets.PLACES_API_KEY }}
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease
 
       - name: Extract APK signing fingerprint
         run: |
-          FINGERPRINT=$(keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk | grep "SHA256:" | awk '{print $2}')
-          echo "APK_FINGERPRINT=$FINGERPRINT" >> $GITHUB_ENV
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          FINGERPRINT=$(keytool -printcert -jarfile "$APK" | grep "SHA256:" | awk '{print $2}')
+          echo "APK_FINGERPRINT=$FINGERPRINT" >> "$GITHUB_ENV"
           echo "APK signing SHA-256: $FINGERPRINT"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Update latest release
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -63,6 +50,6 @@ jobs:
           body: |
             Latest NaviGo APK build from main branch.
             Download and install on any modern Android phone (arm64).
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: android/app/build/outputs/apk/release/app-release.apk
           prerelease: false
           make_latest: true

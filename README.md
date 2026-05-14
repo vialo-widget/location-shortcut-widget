@@ -24,7 +24,7 @@ NaviGo lets users (or their family and friends) pre-configure a set of named sho
 - **Simple, Senior-Friendly UI** — Large buttons, high-contrast text, and a minimal interface designed for readability and ease of use.
 - **Family & Friend Sharing** — Shortcuts can be shared via WhatsApp or any messaging app as a simple link. When the recipient taps the link, NaviGo opens with a one-tap confirmation to add the shortcut to their home screen.
 - **Easy Setup** — Adding a new shortcut is as simple as searching for a place once and giving it a name. Family members can set up shortcuts remotely by sharing them.
-- **Customizable Labels & Icons** — Each shortcut can have a friendly name and icon (e.g., a house for Home, a red cross for Hospital) so users recognize destinations at a glance.
+- **Customizable Labels & Icons** — Each shortcut can have a friendly name and Phosphor duotone icon (e.g., a house for Home, a hospital cross for Hospital) so users recognize destinations at a glance.
 
 ### How Sharing Works
 
@@ -43,13 +43,29 @@ This means a son or daughter in another city can set up their parent's entire sh
 
 ## Tech Stack
 
-- **Flutter** (Dart) — currently Android-only
-- **Riverpod** for state management
-- **Hive** for local storage
-- **go_router** for routing and deep links
-- **OpenStreetMap Nominatim** for place search
-- **home_widget** for Android home screen widgets
-- **share_plus** + a GitHub Pages redirect page for shareable links
+NaviGo is a native Android app (Kotlin + Jetpack Compose):
+
+- **Kotlin & Jetpack Compose** with Material 3 — UI, navigation, theming
+- **Room** for the shortcut database; **DataStore** for app preferences
+- **WorkManager** for scheduled expiry-warning notifications
+- **Ktor** HTTP client over **OpenStreetMap Nominatim** for place search and reverse geocoding (no API key)
+- **Phosphor duotone icons** throughout the app and home-screen widget (`com.adamglin:phosphor-icon`)
+- **Native AppWidget** (`RemoteViews`) for the home-screen widget — frosted-glass and bold-colors styles
+- Android **share sheet** + a GitHub Pages redirect page (`docs/index.html`) for shareable links
+- **Verified App Links** via `assetlinks.json` on the GitHub Pages domain so shared HTTPS links open the app directly
+
+The Android Studio project lives under [`android/`](android/).
+
+## Building
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+Or open `android/` in Android Studio and let Gradle sync — the wrapper at `android/gradlew` will fetch Gradle 8.10.2 on first run.
+
+Min SDK: 26 (Android 8). Target SDK: 35.
 
 ## License
 
