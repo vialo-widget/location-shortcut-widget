@@ -1,172 +1,274 @@
 package com.navigo.app.ui.screens.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.adamglin.PhosphorIcons
-import com.adamglin.phosphoricons.duotone.Bank
-import com.adamglin.phosphoricons.duotone.House
-import com.adamglin.phosphoricons.duotone.MapPin
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.navigo.app.data.model.ExpiryStatus
 import com.navigo.app.data.model.Shortcut
+import com.navigo.app.data.model.computeExpiryStatus
+import com.navigo.app.data.model.expiryBadgeText
 import com.navigo.app.ui.LocalGraph
+import com.navigo.app.ui.icons.ShortcutIcon
+import com.navigo.app.ui.icons.ShortcutIconCatalog
 
-/**
- * Placeholder home screen — built during the Flutter→native rewrite to prove
- * the project compiles end-to-end with Phosphor icons and that the data layer
- * (Room + the legacy-prefs importer) is delivering shortcuts. Replaced in
- * Phase 4 with the real shortcut grid.
- */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onAddShortcut: () -> Unit,
     onOpenSettings: () -> Unit,
+    onEditShortcut: (String) -> Unit,
 ) {
-    val repo = LocalGraph.current.shortcutRepository
-    val shortcuts by repo.shortcuts.collectAsStateWithLifecycle(initialValue = emptyList())
+    val graph = LocalGraph.current
+    val vm: HomeViewModel = viewModel(
+        factory = viewModelFactory { initializer { HomeViewModel(graph) } },
+    )
+    val state by vm.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    var actionTarget by remember { mutableStateOf<Shortcut?>(null) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("NaviGo") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+                actions = {
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+                    }
+                },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddShortcut,
+                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                text = { Text("Add shortcut") },
             )
         },
     ) { padding ->
+        when {
+            state.isLoading -> Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) { Text("Loading…") }
+
+            state.shortcuts.isEmpty() -> EmptyHomeState(
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
+
+            else -> LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(state.shortcuts, key = { it.id }) { shortcut ->
+                    ShortcutTile(
+                        shortcut = shortcut,
+                        onTap = { vm.launchNavigation(context, shortcut) },
+                        onLongPress = { actionTarget = shortcut },
+                    )
+                }
+            }
+        }
+    }
+
+    actionTarget?.let { target ->
+        ShortcutActionsSheet(
+            shortcut = target,
+            onDismiss = { actionTarget = null },
+            onNavigate = { vm.launchNavigation(context, target); actionTarget = null },
+            onShare = { vm.share(context, target); actionTarget = null },
+            onEdit = { actionTarget = null; onEditShortcut(target.id) },
+            onDelete = { vm.delete(target); actionTarget = null },
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
+@Composable
+private fun ShortcutTile(
+    shortcut: Shortcut,
+    onTap: () -> Unit,
+    onLongPress: () -> Unit,
+) {
+    val status = computeExpiryStatus(shortcut.expiresAt, shortcut.createdAt)
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = tileBackground(status),
+        modifier = Modifier
+            .aspectRatio(1f)
+            .combinedClickable(onClick = onTap, onLongClick = onLongPress),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = "Rewrite in progress",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = "Phosphor Duotone icons wired up:",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(20.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                IconChip(PhosphorIcons.Duotone.House, "Home")
-                IconChip(PhosphorIcons.Duotone.Bank, "Bank")
-                IconChip(PhosphorIcons.Duotone.MapPin, "Place")
-            }
-            Spacer(Modifier.height(24.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = "Saved shortcuts (${shortcuts.size})",
-                style = MaterialTheme.typography.titleMedium,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
-            if (shortcuts.isEmpty()) {
-                Text(
-                    text = "No shortcuts yet.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                ShortcutIcon(
+                    imageVector = ShortcutIconCatalog.forKey(shortcut.iconName),
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
                 )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(shortcuts, key = { it.id }) { ShortcutRow(it) }
-                }
+                shortcut.expiresAt?.let { ExpiryBadge(status, expiryBadgeText(it)) }
             }
-            Spacer(Modifier.height(16.dp))
-            Button(onClick = onAddShortcut, modifier = Modifier.fillMaxWidth()) {
-                Text("Add shortcut")
-            }
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
-                Text("Settings")
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-private fun ShortcutRow(shortcut: Shortcut) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(shortcut.label, style = MaterialTheme.typography.titleSmall)
             Text(
-                text = "%.5f, %.5f · %s".format(
-                    shortcut.latitude,
-                    shortcut.longitude,
-                    shortcut.iconName,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = shortcut.label,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
 }
 
 @Composable
-private fun IconChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .background(
-                    MaterialTheme.colorScheme.surfaceVariant,
-                    shape = CircleShape,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(36.dp),
+private fun ExpiryBadge(status: ExpiryStatus, text: String) {
+    val (bg, fg) = badgeColors(status)
+    Box(
+        modifier = Modifier
+            .background(bg, shape = RoundedCornerShape(50))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    ) {
+        Text(text, color = fg, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@Composable
+private fun tileBackground(status: ExpiryStatus): Color {
+    val scheme = MaterialTheme.colorScheme
+    val isDark = scheme.background.luminance() < 0.5f
+    return when (status) {
+        ExpiryStatus.URGENT -> if (isDark) Color(0xFF3D0A0A) else Color(0xFFFDE8E8)
+        ExpiryStatus.WARNING -> if (isDark) Color(0xFF2E1A00) else Color(0xFFFFF3E0)
+        else -> scheme.surfaceVariant
+    }
+}
+
+private fun badgeColors(status: ExpiryStatus): Pair<Color, Color> = when (status) {
+    ExpiryStatus.URGENT -> Color(0xFFC62828) to Color.White
+    ExpiryStatus.WARNING -> Color(0xFFFF8F00) to Color.White
+    ExpiryStatus.SUBTLE -> Color(0xFF9E9E9E) to Color.White
+    ExpiryStatus.NONE -> Color.Transparent to Color.Transparent
+}
+
+private fun Color.luminance(): Float =
+    0.2126f * red + 0.7152f * green + 0.0722f * blue
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShortcutActionsSheet(
+    shortcut: Shortcut,
+    onDismiss: () -> Unit,
+    onNavigate: () -> Unit,
+    onShare: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                shortcut.label,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 12.dp),
             )
+            SheetAction("Navigate") { onNavigate() }
+            SheetAction("Share") { onShare() }
+            SheetAction("Edit") { onEdit() }
+            SheetAction("Delete", destructive = true) { onDelete() }
         }
-        Spacer(Modifier.height(6.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+@Composable
+private fun SheetAction(label: String, destructive: Boolean = false, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = 4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (destructive) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun EmptyHomeState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = "No shortcuts yet",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            text = "Tap “Add shortcut” to save your first place.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
     }
 }

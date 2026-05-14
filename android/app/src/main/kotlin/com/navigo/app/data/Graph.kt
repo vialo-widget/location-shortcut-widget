@@ -32,4 +32,8 @@ class Graph(context: Context) {
     val nominatimClient: NominatimClient by lazy { NominatimClient() }
     val locationService: LocationService by lazy { LocationService(appContext) }
     val expiryNotifier: ExpiryNotifier by lazy { ExpiryNotifier(appContext) }
+    val widgetMirror: com.navigo.app.service.widget.WidgetMirror by lazy {
+        com.navigo.app.service.widget.WidgetMirror(appContext)
+    }
+    val pendingShortcutHolder: PendingShortcutHolder by lazy { PendingShortcutHolder() }
 }

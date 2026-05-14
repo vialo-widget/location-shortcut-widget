@@ -8,7 +8,9 @@ package com.navigo.app.ui.navigation
 object Destinations {
     const val HOME = "home"
     const val ADD = "add"
-    const val CONFIRM_ADD = "confirm_add?payload={payload}"
-    const val EDIT = "edit/{shortcutId}"
+    const val CONFIRM_ADD = "confirm_add"
+    const val EDIT_ROUTE = "edit/{shortcutId}"
     const val SETTINGS = "settings"
+
+    fun edit(shortcutId: String) = "edit/$shortcutId"
 }

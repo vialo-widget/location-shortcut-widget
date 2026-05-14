@@ -2,17 +2,22 @@ package com.navigo.app.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.navigation.compose.rememberNavController
 import com.navigo.app.data.Graph
+import com.navigo.app.deeplink.DeepLinkBus
+import com.navigo.app.service.deeplink.DeepLinkParser
+import com.navigo.app.ui.navigation.Destinations
 import com.navigo.app.ui.navigation.NaviGoNavHost
 import com.navigo.app.ui.theme.NaviGoTheme
 
 /**
- * Top-level Composable, hosted by [com.navigo.app.MainActivity].
+ * Top-level Composable hosted by [com.navigo.app.MainActivity].
  *
- * Native bridges (widget pinning, app-link verification) flow in as lambdas
- * so the UI layer never touches platform-specific Activity APIs directly.
- * The [Graph] is exposed via [LocalGraph] so any screen can grab the repo it
- * needs without prop-drilling.
+ * Owns the navigation controller, exposes the [Graph] and [ActivityBridges]
+ * via CompositionLocals, and routes incoming deep-link URIs to the Confirm
+ * screen by parking the parsed payload on [Graph.pendingShortcutHolder].
  */
 @Composable
 fun NaviGoApp(
@@ -22,10 +27,31 @@ fun NaviGoApp(
     isAppLinkVerified: () -> Boolean,
     openAppLinkSettings: () -> Unit,
 ) {
-    CompositionLocalProvider(LocalGraph provides graph) {
+    val bridges = remember(
+        onRequestPinWidget, isWidgetPinned, isAppLinkVerified, openAppLinkSettings,
+    ) {
+        ActivityBridges(
+            requestPinWidget = onRequestPinWidget,
+            isWidgetPinned = isWidgetPinned,
+            isAppLinkVerified = isAppLinkVerified,
+            openAppLinkSettings = openAppLinkSettings,
+        )
+    }
+
+    CompositionLocalProvider(
+        LocalGraph provides graph,
+        LocalActivityBridges provides bridges,
+    ) {
         NaviGoTheme {
-            // TODO(Phase 4): plumb the lambdas through to Settings and Add screens.
-            NaviGoNavHost()
+            val navController = rememberNavController()
+            LaunchedEffect(navController) {
+                DeepLinkBus.uris.collect { uri ->
+                    val pending = DeepLinkParser.parse(uri) ?: return@collect
+                    graph.pendingShortcutHolder.set(pending)
+                    navController.navigate(Destinations.CONFIRM_ADD)
+                }
+            }
+            NaviGoNavHost(navController = navController)
         }
     }
 }
