@@ -17,6 +17,9 @@ class NaviGoApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Touch the notifier eagerly so its notification channel exists before
+        // any scheduled worker fires.
+        graph.expiryNotifier
         appScope.launch {
             graph.widgetPrefsImporter.migrateIfNeeded()
         }

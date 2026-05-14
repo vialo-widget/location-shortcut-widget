@@ -5,6 +5,9 @@ import com.navigo.app.data.db.NaviGoDatabase
 import com.navigo.app.data.migration.WidgetPrefsImporter
 import com.navigo.app.data.repo.ShortcutRepository
 import com.navigo.app.data.settings.AppSettings
+import com.navigo.app.service.location.LocationService
+import com.navigo.app.service.notification.ExpiryNotifier
+import com.navigo.app.service.search.NominatimClient
 
 /**
  * Manual dependency graph — every long-lived singleton the app needs.
@@ -25,4 +28,8 @@ class Graph(context: Context) {
     val widgetPrefsImporter: WidgetPrefsImporter by lazy {
         WidgetPrefsImporter(appContext, shortcutRepository, appSettings)
     }
+
+    val nominatimClient: NominatimClient by lazy { NominatimClient() }
+    val locationService: LocationService by lazy { LocationService(appContext) }
+    val expiryNotifier: ExpiryNotifier by lazy { ExpiryNotifier(appContext) }
 }
