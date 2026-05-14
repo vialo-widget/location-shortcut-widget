@@ -29,8 +29,10 @@ class MainActivity : ComponentActivity() {
         logSigningFingerprint()
         handleIntent(intent)
 
+        val graph = (application as NaviGoApplication).graph
         setContent {
             NaviGoApp(
+                graph = graph,
                 onRequestPinWidget = ::requestPinWidget,
                 isWidgetPinned = ::isWidgetPinned,
                 isAppLinkVerified = ::isAppLinkVerified,
