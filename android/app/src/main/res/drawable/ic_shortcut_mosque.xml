@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Phosphor duotone mosque. https://phosphoricons.com -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportWidth="256"
+    android:viewportHeight="256"
+    android:tint="?attr/colorControlNormal">
     <path
-        android:fillColor="#00695C"
-        android:pathData="M24,7l-2.5,-1.5L24,4l-4,0.5L21.5,1 20,3.5 18.5,1 20,4.5 16,4l2.5,1.5L16,7l4,-0.5L18.5,10 20,7.5 21.5,10 20,6.5 24,7zM7,11v2H5v2H3v-2H1v-2h2V9h2v2h2zM19,21H5v-5c0,-1.1 0.9,-2 2,-2h2c0.55,0 1.05,0.22 1.41,0.59L12,16.17l1.59,-1.59C13.95,14.22 14.45,14 15,14h2c1.1,0 2,0.9 2,2v5z" />
+        android:fillColor="#FF000000"
+        android:fillAlpha="0.2"
+        android:pathData="M208,128H48c0-64,80-72,80-104C128,56,208,64,208,128Z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M224,128a23.84,23.84,0,0,0-8,1.38V128c0-41.78-31.07-62.46-53.76-77.56C148.16,41.06,136,33,136,24a8,8,0,0,0-16,0c0,9-12.16,17.06-26.24,26.44C71.07,65.54,40,86.22,40,128v1.38A24,24,0,0,0,8,152v56a8,8,0,0,0,8,8H80a8,8,0,0,0,8-8V176a8,8,0,0,1,16,0v32a8,8,0,0,0,8,8h32a8,8,0,0,0,8-8V176a8,8,0,0,1,16,0v32a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V152A24,24,0,0,0,224,128ZM40,200H24V152a8,8,0,0,1,16,0ZM102.63,63.76c9.67-6.44,19-12.68,25.37-20,6.34,7.35,15.7,13.59,25.37,20,20,13.32,42.48,28.29,46.11,56.24h-143C60.15,92.05,82.6,77.08,102.63,63.76ZM200,200H184V176a24,24,0,0,0-48,0v24H120V176a24,24,0,0,0-48,0v24H56V136H200Zm32,0H216V152a8,8,0,0,1,16,0Z" />
 </vector>
