@@ -112,7 +112,11 @@ dependencies {
     implementation 'com.adamglin:phosphor-icon:1.0.0'
 
     // Location (for "Save where I am")
-    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    // Pinned at 21.0.1: 21.3.0 ships Kotlin @Metadata that references stripped
+    // Companion objects on obfuscated internal classes (zze, etc.), which the
+    // Kotlin 2.0 K2 compiler refuses to load. 21.0.1 has clean metadata and
+    // the same FusedLocationProviderClient API we use.
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
 
     // Desugaring — needed for java.time on minSdk < 26 (we are 26, but harmless)
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
