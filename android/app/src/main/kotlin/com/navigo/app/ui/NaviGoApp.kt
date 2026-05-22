@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.navigo.app.data.Graph
 import com.navigo.app.deeplink.DeepLinkBus
 import com.navigo.app.service.deeplink.DeepLinkParser
+import com.navigo.app.ui.components.NaviGoBackground
 import com.navigo.app.ui.navigation.Destinations
 import com.navigo.app.ui.navigation.NaviGoNavHost
 import com.navigo.app.ui.theme.NaviGoTheme
@@ -43,15 +44,17 @@ fun NaviGoApp(
         LocalActivityBridges provides bridges,
     ) {
         NaviGoTheme {
-            val navController = rememberNavController()
-            LaunchedEffect(navController) {
-                DeepLinkBus.uris.collect { uri ->
-                    val pending = DeepLinkParser.parse(uri) ?: return@collect
-                    graph.pendingShortcutHolder.set(pending)
-                    navController.navigate(Destinations.CONFIRM_ADD)
+            NaviGoBackground {
+                val navController = rememberNavController()
+                LaunchedEffect(navController) {
+                    DeepLinkBus.uris.collect { uri ->
+                        val pending = DeepLinkParser.parse(uri) ?: return@collect
+                        graph.pendingShortcutHolder.set(pending)
+                        navController.navigate(Destinations.CONFIRM_ADD)
+                    }
                 }
+                NaviGoNavHost(navController = navController)
             }
-            NaviGoNavHost(navController = navController)
         }
     }
 }
