@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -73,7 +76,23 @@ fun HomeScreen(
 
     var actionTarget by remember { mutableStateOf<Shortcut?>(null) }
 
+    val isDark = isSystemInDarkTheme()
+    // Subtle vertical gradient — barely-there green at the top (under the
+    // wordmark) fading into a hair of grey at the bottom. Keeps the home
+    // surface from feeling flat without competing with tile colours.
+    val backgroundGradient = remember(isDark) {
+        Brush.verticalGradient(
+            colors = if (isDark) {
+                listOf(Color(0xFF0F1611), Color(0xFF14151A))
+            } else {
+                listOf(Color(0xFFEAF1EA), Color(0xFFEDEDED))
+            },
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(backgroundGradient)) {
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = {
@@ -88,6 +107,9 @@ fun HomeScreen(
                         Icon(Icons.Outlined.Settings, contentDescription = "Settings")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
             )
         },
         floatingActionButton = {
@@ -136,6 +158,7 @@ fun HomeScreen(
             onDelete = { vm.delete(target); actionTarget = null },
         )
     }
+    } // end Box (gradient background)
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
