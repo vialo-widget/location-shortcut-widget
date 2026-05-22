@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.navigo.app.data.Graph
 import com.navigo.app.data.model.ExpiryOption
 import com.navigo.app.data.model.Shortcut
+import com.navigo.app.data.validation.DuplicateChecker
+import com.navigo.app.data.validation.SaveBlocker
+import com.navigo.app.data.validation.toBlocker
 import com.navigo.app.service.search.PlaceResult
 import com.navigo.app.ui.icons.autoDetectIconKey
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +30,8 @@ data class AddUiState(
     val isSaving: Boolean = false,
     val savedShortcutId: String? = null,
     val error: String? = null,
+    /** Non-null while a duplicate-check dialog needs to be shown. */
+    val blocker: SaveBlocker? = null,
 )
 
 class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
@@ -44,8 +49,6 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
                 selectedPlace = place,
                 address = place.displayName,
                 label = guessedLabel,
-                // Selecting a place isn't a manual icon pick, so leave
-                // userPickedIcon alone and let the label-derived icon stand.
                 iconKey = if (!it.userPickedIcon) autoDetectIconKey(guessedLabel) else it.iconKey,
                 error = null,
             )
@@ -53,9 +56,6 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
     }
 
     fun setLabel(value: String) = _state.update {
-        // Re-run auto-detect on every label change *unless* the user has
-        // explicitly tapped an icon in the picker. That preserves manual
-        // choices but lets a "Home" → "Work" edit retarget the icon.
         val nextIcon = if (!it.userPickedIcon) autoDetectIconKey(value) else it.iconKey
         it.copy(label = value, iconKey = nextIcon)
     }
@@ -90,30 +90,70 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
             _state.update { it.copy(error = "Pick a place first.") }
             return
         }
-        if (s.label.isBlank()) {
+        val label = s.label.trim()
+        if (label.isBlank()) {
             _state.update { it.copy(error = "Enter a label.") }
             return
         }
         _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            val count = graph.shortcutRepository.count()
+            val all = graph.shortcutRepository.list()
+            val blocker = DuplicateChecker
+                .check(all, place.latitude, place.longitude, label)
+                .toBlocker()
+            if (blocker != null) {
+                _state.update { it.copy(isSaving = false, blocker = blocker) }
+                return@launch
+            }
+            persistNew(all.size, label, place)
+        }
+    }
+
+    fun confirmReplace() {
+        val s = _state.value
+        val matched = (s.blocker as? SaveBlocker.ReplacePrompt)?.matched ?: return
+        val place = s.selectedPlace ?: return
+        val label = s.label.trim().ifBlank { matched.label }
+        _state.update { it.copy(blocker = null, isSaving = true) }
+        viewModelScope.launch {
             val now = Instant.now()
-            val shortcut = Shortcut(
-                id = Shortcut.newId(),
-                label = s.label.trim(),
-                address = s.address,
+            // Preserve the matched shortcut's id + sortOrder so anything that
+            // referenced it (pinned tiles, widget order) stays put.
+            val updated = matched.copy(
+                label = label,
+                address = place.displayName,
                 latitude = place.latitude,
                 longitude = place.longitude,
                 placeId = place.placeId,
                 iconName = s.iconKey,
-                sortOrder = count,
-                createdAt = now,
                 expiresAt = s.expiryOption.expiresAt(now),
             )
-            graph.shortcutRepository.add(shortcut)
-            graph.expiryNotifier.schedule(shortcut)
-            _state.update { it.copy(isSaving = false, savedShortcutId = shortcut.id) }
+            graph.shortcutRepository.update(updated)
+            graph.expiryNotifier.cancel(matched.id)
+            graph.expiryNotifier.schedule(updated)
+            _state.update { it.copy(isSaving = false, savedShortcutId = updated.id) }
         }
+    }
+
+    fun dismissBlocker() = _state.update { it.copy(blocker = null) }
+
+    private suspend fun persistNew(currentCount: Int, label: String, place: PlaceResult) {
+        val now = Instant.now()
+        val shortcut = Shortcut(
+            id = Shortcut.newId(),
+            label = label,
+            address = place.displayName,
+            latitude = place.latitude,
+            longitude = place.longitude,
+            placeId = place.placeId,
+            iconName = _state.value.iconKey,
+            sortOrder = currentCount,
+            createdAt = now,
+            expiresAt = _state.value.expiryOption.expiresAt(now),
+        )
+        graph.shortcutRepository.add(shortcut)
+        graph.expiryNotifier.schedule(shortcut)
+        _state.update { it.copy(isSaving = false, savedShortcutId = shortcut.id) }
     }
 
     private companion object {

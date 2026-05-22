@@ -38,6 +38,7 @@ import com.navigo.app.ui.LocalGraph
 import com.navigo.app.ui.components.ExpiryPicker
 import com.navigo.app.ui.components.IconPicker
 import com.navigo.app.ui.components.PlaceSearchField
+import com.navigo.app.ui.components.SaveBlockerDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,4 +135,11 @@ fun AddShortcutScreen(
             Spacer(Modifier.height(24.dp))
         }
     }
+
+    SaveBlockerDialog(
+        blocker = state.blocker,
+        candidateLabel = state.label.trim(),
+        onDismiss = vm::dismissBlocker,
+        onConfirmReplace = vm::confirmReplace,
+    )
 }

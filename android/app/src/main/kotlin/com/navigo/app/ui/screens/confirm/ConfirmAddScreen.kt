@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.navigo.app.ui.LocalGraph
 import com.navigo.app.ui.components.ExpiryPicker
 import com.navigo.app.ui.components.IconPicker
+import com.navigo.app.ui.components.SaveBlockerDialog
 import com.navigo.app.ui.icons.ShortcutIcon
 import com.navigo.app.ui.icons.ShortcutIconCatalog
 
@@ -125,6 +126,15 @@ fun ConfirmAddScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+            state.labelHint?.let { hint ->
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
 
             Spacer(Modifier.height(20.dp))
             Text("Icon", style = MaterialTheme.typography.titleMedium)
@@ -156,4 +166,11 @@ fun ConfirmAddScreen(
             Spacer(Modifier.height(24.dp))
         }
     }
+
+    SaveBlockerDialog(
+        blocker = state.blocker,
+        candidateLabel = state.label.trim(),
+        onDismiss = vm::dismissBlocker,
+        onConfirmReplace = vm::confirmReplace,
+    )
 }

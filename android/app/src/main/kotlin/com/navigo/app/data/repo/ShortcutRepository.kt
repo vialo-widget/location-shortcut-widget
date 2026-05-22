@@ -22,6 +22,11 @@ class ShortcutRepository(private val dao: ShortcutDao) {
 
     suspend fun get(id: String): Shortcut? = dao.findById(id)?.toDomain()
 
+    /** Snapshot of every stored shortcut, sort-order ascending. Used by the
+     *  duplicate-check helpers that need to see the whole set at a point in
+     *  time (cheap — the table is bounded to a handful of rows). */
+    suspend fun list(): List<Shortcut> = dao.getAll().map { it.toDomain() }
+
     suspend fun add(shortcut: Shortcut) = dao.insert(shortcut.toEntity())
 
     suspend fun addAll(shortcuts: List<Shortcut>) =
