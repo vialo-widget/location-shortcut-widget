@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.navigo.app.data.Graph
 import com.navigo.app.data.model.ExpiryOption
 import com.navigo.app.data.model.Shortcut
+import com.navigo.app.service.search.PlaceResult
+import com.navigo.app.ui.icons.autoDetectIconKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +20,16 @@ data class EditUiState(
     val original: Shortcut? = null,
     val label: String = "",
     val iconKey: String = "place",
+    /** True once the user has tapped an icon in the picker — disables
+     *  the label-driven auto-detect after that point. */
+    val userPickedIcon: Boolean = false,
     val expiryOption: ExpiryOption = ExpiryOption.NEVER,
+    /** Mutable location — initialised from [original] but the user can
+     *  swap it out via the "Change location" picker. */
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val address: String = "",
+    val placeId: String = "",
     val isSaving: Boolean = false,
     val closed: Boolean = false,
 )
@@ -43,14 +54,40 @@ class EditShortcutViewModel(
                     label = existing.label,
                     iconKey = existing.iconName,
                     expiryOption = ExpiryOption.infer(existing.expiresAt, existing.createdAt),
+                    latitude = existing.latitude,
+                    longitude = existing.longitude,
+                    address = existing.address,
+                    placeId = existing.placeId,
                 )
             }
         }
     }
 
-    fun setLabel(v: String) = _state.update { it.copy(label = v) }
-    fun setIcon(k: String) = _state.update { it.copy(iconKey = k) }
+    fun setLabel(value: String) = _state.update {
+        // Re-run auto-detect on label edits *unless* the user has explicitly
+        // chosen an icon in the picker — so renaming "Home" → "Work" can
+        // retarget the icon, but a manual pick survives subsequent edits.
+        val nextIcon = if (!it.userPickedIcon) autoDetectIconKey(value) else it.iconKey
+        it.copy(label = value, iconKey = nextIcon)
+    }
+
+    fun setIcon(k: String) = _state.update { it.copy(iconKey = k, userPickedIcon = true) }
+
     fun setExpiry(o: ExpiryOption) = _state.update { it.copy(expiryOption = o) }
+
+    /** Swap the saved coordinates / address. Label and icon are intentionally
+     *  left alone — they belong to the user's existing customisation. */
+    fun setLocation(place: PlaceResult) = _state.update {
+        it.copy(
+            latitude = place.latitude,
+            longitude = place.longitude,
+            address = place.displayName,
+            placeId = place.placeId,
+        )
+    }
+
+    suspend fun searchPlaces(query: String): List<PlaceResult> =
+        graph.nominatimClient.search(query)
 
     fun save() {
         val s = _state.value
@@ -70,6 +107,10 @@ class EditShortcutViewModel(
             val updated = original.copy(
                 label = s.label.trim().ifBlank { original.label },
                 iconName = s.iconKey,
+                latitude = s.latitude,
+                longitude = s.longitude,
+                address = s.address,
+                placeId = s.placeId,
                 expiresAt = nextExpiresAt,
             )
             graph.shortcutRepository.update(updated)

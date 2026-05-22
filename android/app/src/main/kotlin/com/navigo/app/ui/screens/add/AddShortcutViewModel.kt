@@ -19,6 +19,10 @@ data class AddUiState(
     val label: String = "",
     val address: String = "",
     val iconKey: String = "place",
+    /** Flips to true the first time the user opens the icon picker and
+     *  taps a tile. After that, label edits no longer overwrite their
+     *  choice via auto-detect. */
+    val userPickedIcon: Boolean = false,
     val expiryOption: ExpiryOption = ExpiryOption.NEVER,
     val isSaving: Boolean = false,
     val savedShortcutId: String? = null,
@@ -40,20 +44,23 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
                 selectedPlace = place,
                 address = place.displayName,
                 label = guessedLabel,
-                iconKey = autoDetectIconKey(guessedLabel),
+                // Selecting a place isn't a manual icon pick, so leave
+                // userPickedIcon alone and let the label-derived icon stand.
+                iconKey = if (!it.userPickedIcon) autoDetectIconKey(guessedLabel) else it.iconKey,
                 error = null,
             )
         }
     }
 
     fun setLabel(value: String) = _state.update {
-        // Only auto-detect the icon while it's still the default "place" — once
-        // the user has picked one explicitly we leave their choice alone.
-        val nextIcon = if (it.iconKey == "place") autoDetectIconKey(value) else it.iconKey
+        // Re-run auto-detect on every label change *unless* the user has
+        // explicitly tapped an icon in the picker. That preserves manual
+        // choices but lets a "Home" → "Work" edit retarget the icon.
+        val nextIcon = if (!it.userPickedIcon) autoDetectIconKey(value) else it.iconKey
         it.copy(label = value, iconKey = nextIcon)
     }
 
-    fun setIcon(key: String) = _state.update { it.copy(iconKey = key) }
+    fun setIcon(key: String) = _state.update { it.copy(iconKey = key, userPickedIcon = true) }
     fun setExpiry(option: ExpiryOption) = _state.update { it.copy(expiryOption = option) }
     fun clearError() = _state.update { it.copy(error = null) }
 

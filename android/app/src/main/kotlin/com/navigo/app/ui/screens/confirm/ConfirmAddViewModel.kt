@@ -17,6 +17,7 @@ data class ConfirmUiState(
     val pending: PendingShortcut? = null,
     val label: String = "",
     val iconKey: String = "place",
+    val userPickedIcon: Boolean = false,
     val expiryOption: ExpiryOption = ExpiryOption.NEVER,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
@@ -38,8 +39,13 @@ class ConfirmAddViewModel(private val graph: Graph) : ViewModel() {
         }
     }
 
-    fun setLabel(v: String) = _state.update { it.copy(label = v) }
-    fun setIcon(k: String) = _state.update { it.copy(iconKey = k) }
+    fun setLabel(v: String) = _state.update {
+        val nextIcon = if (!it.userPickedIcon) {
+            com.navigo.app.ui.icons.autoDetectIconKey(v)
+        } else it.iconKey
+        it.copy(label = v, iconKey = nextIcon)
+    }
+    fun setIcon(k: String) = _state.update { it.copy(iconKey = k, userPickedIcon = true) }
     fun setExpiry(o: ExpiryOption) = _state.update { it.copy(expiryOption = o) }
 
     fun confirm() {

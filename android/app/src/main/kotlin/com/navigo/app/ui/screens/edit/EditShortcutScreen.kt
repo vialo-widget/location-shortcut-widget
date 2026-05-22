@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -20,13 +21,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,9 +45,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.navigo.app.service.search.PlaceResult
 import com.navigo.app.ui.LocalGraph
 import com.navigo.app.ui.components.ExpiryPicker
-import com.navigo.app.ui.components.IconPicker
+import com.navigo.app.ui.components.IconPickerCompact
+import com.navigo.app.ui.components.PlaceSearchField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +64,7 @@ fun EditShortcutScreen(
     )
     val state by vm.state.collectAsStateWithLifecycle()
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showLocationPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.closed) { if (state.closed) onClose() }
     LaunchedEffect(state.notFound) { if (state.notFound) onClose() }
@@ -99,19 +106,22 @@ fun EditShortcutScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (original.address.isNotBlank()) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    original.address,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+
+            Spacer(Modifier.height(20.dp))
+            Text("Location", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            LocationRow(
+                address = state.address,
+                onChangeClick = { showLocationPicker = true },
+            )
 
             Spacer(Modifier.height(20.dp))
             Text("Icon", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(8.dp))
-            IconPicker(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
+            IconPickerCompact(
+                selectedKey = state.iconKey,
+                onIconSelected = vm::setIcon,
+            )
 
             Spacer(Modifier.height(20.dp))
             Text("Expires in", style = MaterialTheme.typography.titleMedium)
@@ -142,6 +152,17 @@ fun EditShortcutScreen(
         }
     }
 
+    if (showLocationPicker) {
+        LocationPickerSheet(
+            onDismiss = { showLocationPicker = false },
+            onSearch = { vm.searchPlaces(it) },
+            onSelected = { place ->
+                vm.setLocation(place)
+                showLocationPicker = false
+            },
+        )
+    }
+
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
@@ -159,5 +180,55 @@ fun EditShortcutScreen(
                 TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
             },
         )
+    }
+}
+
+@Composable
+private fun LocationRow(
+    address: String,
+    onChangeClick: () -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    address.ifBlank { "(no address)" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            TextButton(onClick = onChangeClick) { Text("Change") }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LocationPickerSheet(
+    onDismiss: () -> Unit,
+    onSearch: suspend (String) -> List<PlaceResult>,
+    onSelected: (PlaceResult) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(
+                "Change location",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+            PlaceSearchField(
+                onPlaceSelected = onSelected,
+                onSearch = onSearch,
+            )
+            Spacer(Modifier.height(16.dp))
+        }
     }
 }
