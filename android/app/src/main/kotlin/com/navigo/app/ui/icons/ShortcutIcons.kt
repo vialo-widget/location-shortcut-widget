@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import com.adamglin.PhosphorIcons
+import com.adamglin.phosphoricons.Duotone
 import com.adamglin.phosphoricons.duotone.Airplane
 import com.adamglin.phosphoricons.duotone.Bank
 import com.adamglin.phosphoricons.duotone.Barbell

@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -82,7 +82,7 @@ fun AddShortcutScreen(
                 onClick = vm::useCurrentLocation,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(Icons.Outlined.MyLocation, contentDescription = null)
+                Icon(Icons.Outlined.LocationOn, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Save where I am")
             }
