@@ -72,7 +72,9 @@ class WidgetMirror(private val context: Context) {
     }
 
     companion object {
-        const val MAX_WIDGET_SHORTCUTS = 6
+        /** Mirror up to a 6×2 = 12-tile bold grid; the glass widget still
+         *  only paints the first six but tolerates extras in the JSON. */
+        const val MAX_WIDGET_SHORTCUTS = 12
         const val STYLE_FROSTED_GLASS = "frostedGlass"
         const val STYLE_BOLD_COLORS = "boldColors"
 

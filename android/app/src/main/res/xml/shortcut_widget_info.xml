@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  NaviGo widget metadata.
+
+  Default size on add:
+    * Android 12+ uses targetCellWidth / targetCellHeight — set to 5×2 so
+      the widget claims a full row at add time on most launcher grids.
+    * Pre-12 falls back to minWidth / minHeight, bumped to roughly 5×2 cells
+      worth (≈350 dp × 150 dp) for the same effect.
+
+  Resize:
+    * minResize lets the user shrink down to a single 1×1-icon tile if they
+      want; maxResize lets it grow to the launcher's edge.
+
+  Tiles inside the widget are fixed 1×1-icon size — see how many fit per row
+  and rendering logic in ShortcutWidgetProvider#buildBoldViews.
+-->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="180dp"
-    android:minHeight="120dp"
-    android:minResizeWidth="110dp"
-    android:minResizeHeight="60dp"
+    android:minWidth="350dp"
+    android:minHeight="150dp"
+    android:targetCellWidth="5"
+    android:targetCellHeight="2"
+    android:minResizeWidth="70dp"
+    android:minResizeHeight="70dp"
     android:maxResizeWidth="530dp"
     android:maxResizeHeight="400dp"
     android:initialLayout="@layout/shortcut_widget"
