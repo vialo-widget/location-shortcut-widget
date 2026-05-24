@@ -48,15 +48,19 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
             SlotIds(R.id.slot_5, R.id.icon_5, R.id.label_5),
         )
 
-        /** Bold-scheme tile palette — Tailwind 600 range. Modern, vivid,
-         *  curated. Mirrors res/values/bold_colors.xml — keep both in sync. */
-        private val boldSlotColors = intArrayOf(
-            Color.parseColor("#FF4F46E5"), // Indigo
-            Color.parseColor("#FF0D9488"), // Teal
-            Color.parseColor("#FFEA580C"), // Orange
-            Color.parseColor("#FF7C3AED"), // Violet
-            Color.parseColor("#FF059669"), // Emerald
-            Color.parseColor("#FFE11D48"), // Rose
+        /** Bold-scheme tile backgrounds — one drawable per Tailwind 600
+         *  colour. Selected at runtime via setBackgroundResource so each
+         *  tile gets a rounded shape (the colour-only path through
+         *  setBackgroundColor would replace the rounded widget_bold_bg
+         *  with a square ColorDrawable, leaving the corners poking out
+         *  past the rounded foreground overlay). */
+        private val boldSlotDrawables = intArrayOf(
+            R.drawable.widget_bold_bg_0, // Indigo  #4F46E5
+            R.drawable.widget_bold_bg_1, // Teal    #0D9488
+            R.drawable.widget_bold_bg_2, // Orange  #EA580C
+            R.drawable.widget_bold_bg_3, // Violet  #7C3AED
+            R.drawable.widget_bold_bg_4, // Emerald #059669
+            R.drawable.widget_bold_bg_5, // Rose    #E11D48
         )
 
         // Map icon names to custom drawable resources (matching Flutter app icons)
@@ -147,9 +151,15 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(slot.label, label)
                     views.setImageViewResource(slot.icon, getIconRes(context, iconName))
 
-                    // Apply per-slot color for bold style
+                    // Apply per-slot color for bold style. setBackgroundResource
+                    // (not setBackgroundColor) so the runtime swap keeps the
+                    // 20dp rounded shape from widget_bold_bg_*.xml instead of
+                    // replacing it with a square ColorDrawable.
                     if (isBold) {
-                        views.setInt(slot.container, "setBackgroundColor", boldSlotColors[i % boldSlotColors.size])
+                        views.setInt(
+                            slot.container, "setBackgroundResource",
+                            boldSlotDrawables[i % boldSlotDrawables.size],
+                        )
                     }
 
                     val navUri = Uri.parse("google.navigation:q=$lat,$lng")
