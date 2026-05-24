@@ -20,6 +20,8 @@
         android:gravity="center"
         android:padding="8dp"
         android:background="@drawable/widget_bold_bg"
+        android:foreground="@drawable/widget_bold_overlay"
+        android:foregroundGravity="fill"
         android:visibility="gone">
         <ImageView
             android:id="@+id/icon_0"
@@ -58,6 +60,8 @@
         android:gravity="center"
         android:padding="8dp"
         android:background="@drawable/widget_bold_bg"
+        android:foreground="@drawable/widget_bold_overlay"
+        android:foregroundGravity="fill"
         android:visibility="gone">
         <ImageView
             android:id="@+id/icon_1"
@@ -96,6 +100,8 @@
         android:gravity="center"
         android:padding="8dp"
         android:background="@drawable/widget_bold_bg"
+        android:foreground="@drawable/widget_bold_overlay"
+        android:foregroundGravity="fill"
         android:visibility="gone">
         <ImageView
             android:id="@+id/icon_2"
@@ -134,6 +140,8 @@
         android:gravity="center"
         android:padding="8dp"
         android:background="@drawable/widget_bold_bg"
+        android:foreground="@drawable/widget_bold_overlay"
+        android:foregroundGravity="fill"
         android:visibility="gone">
         <ImageView
             android:id="@+id/icon_3"
@@ -172,6 +180,8 @@
         android:gravity="center"
         android:padding="8dp"
         android:background="@drawable/widget_bold_bg"
+        android:foreground="@drawable/widget_bold_overlay"
+        android:foregroundGravity="fill"
         android:visibility="gone">
         <ImageView
             android:id="@+id/icon_4"
@@ -210,6 +220,8 @@
         android:gravity="center"
         android:padding="8dp"
         android:background="@drawable/widget_bold_bg"
+        android:foreground="@drawable/widget_bold_overlay"
+        android:foregroundGravity="fill"
         android:visibility="gone">
         <ImageView
             android:id="@+id/icon_5"

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Bold-tile glass overlay. Layered as the foreground on each slot in
+  shortcut_widget_bold.xml so it draws on top of the runtime-set solid colour
+  (setBackgroundColor) without replacing it.
+
+  All three layers are translucent white over fully-transparent shapes, so
+  the underlying bold colour shows through; together they give the tile a
+  "glass over painted surface" feel rather than a flat colour block.
+
+  Stacking order (back → front):
+    1. Top→down sheen  — a soft bright wash on the upper half (specular)
+    2. Top-left radial — anchors a single light source, matches the glass
+                         widget's lighting direction
+    3. Inner edge      — a hairline white stroke for crispness; reads as
+                         the rim of a piece of glass catching light
+
+  Corner radius matches widget_bold_bg.xml (20 dp) so the overlay clips to
+  the same silhouette as the tile body.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. Top sheen — bright at the top, fades to nothing by ~40% down -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#3DFFFFFF"
+                android:endColor="#00FFFFFF"
+                android:angle="270" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+    <!-- 2. Top-left radial highlight — the "wet light" -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.20"
+                android:centerY="0.15"
+                android:gradientRadius="60dp"
+                android:startColor="#4DFFFFFF"
+                android:endColor="#00FFFFFF" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+    <!-- 3. Inner edge — thin glass rim -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+            <corners android:radius="20dp" />
+            <stroke
+                android:width="1dp"
+                android:color="#4DFFFFFF" />
+        </shape>
+    </item>
+</layer-list>
