@@ -48,14 +48,15 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
             SlotIds(R.id.slot_5, R.id.icon_5, R.id.label_5),
         )
 
-        /** Bold-color palette — one per slot. */
+        /** Bold-scheme tile palette — Tailwind 600 range. Modern, vivid,
+         *  curated. Mirrors res/values/bold_colors.xml — keep both in sync. */
         private val boldSlotColors = intArrayOf(
-            Color.parseColor("#FF1565C0"), // Blue
-            Color.parseColor("#FF00897B"), // Teal
-            Color.parseColor("#FFE65100"), // Deep Orange
-            Color.parseColor("#FF6A1B9A"), // Purple
-            Color.parseColor("#FF2E7D32"), // Green
-            Color.parseColor("#FFC62828"), // Red
+            Color.parseColor("#FF4F46E5"), // Indigo
+            Color.parseColor("#FF0D9488"), // Teal
+            Color.parseColor("#FFEA580C"), // Orange
+            Color.parseColor("#FF7C3AED"), // Violet
+            Color.parseColor("#FF059669"), // Emerald
+            Color.parseColor("#FFE11D48"), // Rose
         )
 
         // Map icon names to custom drawable resources (matching Flutter app icons)

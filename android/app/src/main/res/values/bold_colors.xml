@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Bold widget color palette — one per slot -->
+<!--
+  Bold-scheme tile palette — Tailwind 600 range. More saturated and modern
+  than the previous Material 800-level set; reads as "vivid but curated"
+  rather than "industrial".
+
+  The runtime source of truth is the boldSlotColors array in
+  ShortcutWidgetProvider.kt — keep these in sync if you tweak one.
+-->
 <resources>
-    <color name="bold_slot_0">#FF1565C0</color> <!-- Blue -->
-    <color name="bold_slot_1">#FF00897B</color> <!-- Teal -->
-    <color name="bold_slot_2">#FFE65100</color> <!-- Deep Orange -->
-    <color name="bold_slot_3">#FF6A1B9A</color> <!-- Purple -->
-    <color name="bold_slot_4">#FF2E7D32</color> <!-- Green -->
-    <color name="bold_slot_5">#FFC62828</color> <!-- Red -->
+    <color name="bold_slot_0">#FF4F46E5</color> <!-- Indigo  -->
+    <color name="bold_slot_1">#FF0D9488</color> <!-- Teal    -->
+    <color name="bold_slot_2">#FFEA580C</color> <!-- Orange  -->
+    <color name="bold_slot_3">#FF7C3AED</color> <!-- Violet  -->
+    <color name="bold_slot_4">#FF059669</color> <!-- Emerald -->
+    <color name="bold_slot_5">#FFE11D48</color> <!-- Rose    -->
 </resources>
