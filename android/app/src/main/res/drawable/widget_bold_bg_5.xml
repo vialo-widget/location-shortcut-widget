@@ -2,6 +2,6 @@
 <!-- Bold-scheme tile #5 — Rose. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FFE11D48" />
+    <solid android:color="#B3E11D48" />
     <corners android:radius="20dp" />
 </shape>

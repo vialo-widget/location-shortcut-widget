@@ -2,6 +2,6 @@
 <!-- Bold-scheme tile #4 — Emerald. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FF059669" />
+    <solid android:color="#B3059669" />
     <corners android:radius="20dp" />
 </shape>
