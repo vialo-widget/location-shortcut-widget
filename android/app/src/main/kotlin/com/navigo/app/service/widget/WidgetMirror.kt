@@ -37,15 +37,6 @@ class WidgetMirror(private val context: Context) {
         broadcastUpdate()
     }
 
-    /** Currently-stored widget style — `frostedGlass` (default) or `boldColors`. */
-    fun getWidgetStyle(): String =
-        prefs().getString(KEY_WIDGET_STYLE, DEFAULT_WIDGET_STYLE) ?: DEFAULT_WIDGET_STYLE
-
-    fun setWidgetStyle(style: String) {
-        prefs().edit().putString(KEY_WIDGET_STYLE, style).apply()
-        broadcastUpdate()
-    }
-
     private fun prefs() =
         context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
@@ -72,15 +63,10 @@ class WidgetMirror(private val context: Context) {
     }
 
     companion object {
-        /** Mirror up to a 6×2 = 12-tile bold grid; the glass widget still
-         *  only paints the first six but tolerates extras in the JSON. */
+        /** Mirror up to a 6×2 = 12-tile bold grid. */
         const val MAX_WIDGET_SHORTCUTS = 12
-        const val STYLE_FROSTED_GLASS = "frostedGlass"
-        const val STYLE_BOLD_COLORS = "boldColors"
 
         private const val PREFS_FILE = "HomeWidgetPreferences"
         private const val KEY_SHORTCUTS_JSON = "shortcuts_json"
-        private const val KEY_WIDGET_STYLE = "widget_style"
-        private const val DEFAULT_WIDGET_STYLE = STYLE_FROSTED_GLASS
     }
 }

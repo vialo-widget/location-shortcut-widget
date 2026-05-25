@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.map
  * Lightweight wrapper around a DataStore<Preferences> for user-facing app
  * settings and one-shot migration flags.
  *
- * Widget rendering preferences (e.g. `widget_style`) intentionally live in the
- * legacy `HomeWidgetPreferences` SharedPreferences instead — the [com.navigo.app.ShortcutWidgetProvider]
- * reads them there, and using a shared file means the widget keeps working
- * without an extra IPC layer.
+ * Widget shortcut data intentionally lives in the legacy
+ * `HomeWidgetPreferences` SharedPreferences instead — the
+ * [com.navigo.app.ShortcutWidgetProvider] reads it there, and using a shared
+ * file means the widget keeps working without an extra IPC layer.
  */
 class AppSettings(private val context: Context) {
 

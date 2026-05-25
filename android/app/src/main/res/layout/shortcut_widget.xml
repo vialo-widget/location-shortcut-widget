@@ -1,49 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Glass-style translucent widget layout -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  Bold widget layout — 12 fixed-size 1×1-icon tiles in a GridLayout.
+
+  The grid's columnCount is set at runtime by
+  ShortcutWidgetProvider#buildBoldViews based on the current widget width,
+  so the tiles wrap into as many columns as fit and the remainder are
+  hidden via View.GONE. Each tile is a fixed 64 dp × 64 dp; no weight, no
+  resizing — that's the "1×1 icon, no resizing" behaviour.
+
+  An outer FrameLayout centres the grid so leftover space sits as an even
+  margin around the tiles rather than collecting on one side.
+
+  rowCount=2 and columnCount=6 in XML are defaults for the layout preview
+  in Android Studio; runtime overrides them through setInt("setColumnCount", …).
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="12dp"
-    android:background="@drawable/widget_background">
+    android:layout_height="match_parent">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/widget_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="NaviGo"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFFFF"
-        android:shadowColor="#44000000"
-        android:shadowDx="0"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:paddingBottom="8dp"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp" />
-
-    <!-- Shortcut grid (2 columns, up to 3 rows = 6 shortcuts max) -->
     <GridLayout
         android:id="@+id/shortcut_grid"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:columnCount="2"
-        android:rowCount="3"
-        android:useDefaultMargins="true">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:columnCount="6"
+        android:rowCount="2"
+        android:padding="2dp"
+        android:useDefaultMargins="false">
 
-        <!-- Slot 1 -->
         <LinearLayout
             android:id="@+id/slot_0"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp"
-            android:background="@drawable/widget_button_bg"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
             android:visibility="gone">
             <ImageView
                 android:id="@+id/icon_0"
@@ -52,36 +47,36 @@
                 android:layout_weight="1"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:tint="#FF1B5E20"
+                android:tint="#FFFFFFFF"
                 android:src="@android:drawable/ic_menu_mylocation" />
             <TextView
                 android:id="@+id/label_0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:gravity="center"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#AA000000"
+                android:shadowColor="#66000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:maxLines="1"
-                android:gravity="center"
                 android:ellipsize="end"
-                android:paddingTop="4dp" />
+                android:paddingTop="2dp" />
         </LinearLayout>
 
-        <!-- Slot 2 -->
         <LinearLayout
             android:id="@+id/slot_1"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp"
-            android:background="@drawable/widget_button_bg"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
             android:visibility="gone">
             <ImageView
                 android:id="@+id/icon_1"
@@ -90,36 +85,36 @@
                 android:layout_weight="1"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:tint="#FF1B5E20"
+                android:tint="#FFFFFFFF"
                 android:src="@android:drawable/ic_menu_mylocation" />
             <TextView
                 android:id="@+id/label_1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:gravity="center"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#AA000000"
+                android:shadowColor="#66000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:maxLines="1"
-                android:gravity="center"
                 android:ellipsize="end"
-                android:paddingTop="4dp" />
+                android:paddingTop="2dp" />
         </LinearLayout>
 
-        <!-- Slot 3 -->
         <LinearLayout
             android:id="@+id/slot_2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp"
-            android:background="@drawable/widget_button_bg"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
             android:visibility="gone">
             <ImageView
                 android:id="@+id/icon_2"
@@ -128,36 +123,36 @@
                 android:layout_weight="1"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:tint="#FF1B5E20"
+                android:tint="#FFFFFFFF"
                 android:src="@android:drawable/ic_menu_mylocation" />
             <TextView
                 android:id="@+id/label_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:gravity="center"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#AA000000"
+                android:shadowColor="#66000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:maxLines="1"
-                android:gravity="center"
                 android:ellipsize="end"
-                android:paddingTop="4dp" />
+                android:paddingTop="2dp" />
         </LinearLayout>
 
-        <!-- Slot 4 -->
         <LinearLayout
             android:id="@+id/slot_3"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp"
-            android:background="@drawable/widget_button_bg"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
             android:visibility="gone">
             <ImageView
                 android:id="@+id/icon_3"
@@ -166,36 +161,36 @@
                 android:layout_weight="1"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:tint="#FF1B5E20"
+                android:tint="#FFFFFFFF"
                 android:src="@android:drawable/ic_menu_mylocation" />
             <TextView
                 android:id="@+id/label_3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:gravity="center"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#AA000000"
+                android:shadowColor="#66000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:maxLines="1"
-                android:gravity="center"
                 android:ellipsize="end"
-                android:paddingTop="4dp" />
+                android:paddingTop="2dp" />
         </LinearLayout>
 
-        <!-- Slot 5 -->
         <LinearLayout
             android:id="@+id/slot_4"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp"
-            android:background="@drawable/widget_button_bg"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
             android:visibility="gone">
             <ImageView
                 android:id="@+id/icon_4"
@@ -204,36 +199,36 @@
                 android:layout_weight="1"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:tint="#FF1B5E20"
+                android:tint="#FFFFFFFF"
                 android:src="@android:drawable/ic_menu_mylocation" />
             <TextView
                 android:id="@+id/label_4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:gravity="center"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#AA000000"
+                android:shadowColor="#66000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:maxLines="1"
-                android:gravity="center"
                 android:ellipsize="end"
-                android:paddingTop="4dp" />
+                android:paddingTop="2dp" />
         </LinearLayout>
 
-        <!-- Slot 6 -->
         <LinearLayout
             android:id="@+id/slot_5"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_columnWeight="1"
-            android:layout_rowWeight="1"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
             android:orientation="vertical"
             android:gravity="center"
-            android:padding="8dp"
-            android:background="@drawable/widget_button_bg"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
             android:visibility="gone">
             <ImageView
                 android:id="@+id/icon_5"
@@ -242,24 +237,252 @@
                 android:layout_weight="1"
                 android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
-                android:tint="#FF1B5E20"
+                android:tint="#FFFFFFFF"
                 android:src="@android:drawable/ic_menu_mylocation" />
             <TextView
                 android:id="@+id/label_5"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:gravity="center"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#AA000000"
+                android:shadowColor="#66000000"
                 android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="3"
+                android:shadowRadius="2"
                 android:maxLines="1"
-                android:gravity="center"
                 android:ellipsize="end"
-                android:paddingTop="4dp" />
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slot_6"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
+            android:visibility="gone">
+            <ImageView
+                android:id="@+id/icon_6"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:tint="#FFFFFFFF"
+                android:src="@android:drawable/ic_menu_mylocation" />
+            <TextView
+                android:id="@+id/label_6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slot_7"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
+            android:visibility="gone">
+            <ImageView
+                android:id="@+id/icon_7"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:tint="#FFFFFFFF"
+                android:src="@android:drawable/ic_menu_mylocation" />
+            <TextView
+                android:id="@+id/label_7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slot_8"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
+            android:visibility="gone">
+            <ImageView
+                android:id="@+id/icon_8"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:tint="#FFFFFFFF"
+                android:src="@android:drawable/ic_menu_mylocation" />
+            <TextView
+                android:id="@+id/label_8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slot_9"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
+            android:visibility="gone">
+            <ImageView
+                android:id="@+id/icon_9"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:tint="#FFFFFFFF"
+                android:src="@android:drawable/ic_menu_mylocation" />
+            <TextView
+                android:id="@+id/label_9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slot_10"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
+            android:visibility="gone">
+            <ImageView
+                android:id="@+id/icon_10"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:tint="#FFFFFFFF"
+                android:src="@android:drawable/ic_menu_mylocation" />
+            <TextView
+                android:id="@+id/label_10"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingTop="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/slot_11"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="2dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="6dp"
+            android:background="@drawable/widget_bold_bg"
+            android:foreground="@drawable/widget_bold_overlay"
+            android:foregroundGravity="fill"
+            android:visibility="gone">
+            <ImageView
+                android:id="@+id/icon_11"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"
+                android:tint="#FFFFFFFF"
+                android:src="@android:drawable/ic_menu_mylocation" />
+            <TextView
+                android:id="@+id/label_11"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFFFF"
+                android:shadowColor="#66000000"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingTop="2dp" />
         </LinearLayout>
 
     </GridLayout>
-</LinearLayout>
+</FrameLayout>

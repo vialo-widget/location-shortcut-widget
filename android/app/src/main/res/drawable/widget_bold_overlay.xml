@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Bold-tile glass overlay. Layered as the foreground on each slot in
-  shortcut_widget_bold.xml so it draws on top of the runtime-set solid colour
+  Tile glass overlay. Layered as the foreground on each slot in
+  shortcut_widget.xml so it draws on top of the runtime-set solid colour
   (setBackgroundColor) without replacing it.
 
   All three layers are translucent white over fully-transparent shapes, so

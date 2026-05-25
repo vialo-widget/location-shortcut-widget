@@ -25,9 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -120,23 +117,6 @@ fun SettingsScreen(onBack: () -> Unit) {
                     }) { Text("Add widget") }
                 },
             )
-
-            Spacer(Modifier.height(12.dp))
-            Text("Widget style", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
-            val styles = listOf(
-                SettingsViewModel.STYLE_FROSTED_GLASS to "Frosted",
-                SettingsViewModel.STYLE_BOLD_COLORS to "Bold",
-            )
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                styles.forEachIndexed { index, (key, label) ->
-                    SegmentedButton(
-                        selected = state.widgetStyle == key,
-                        onClick = { vm.setWidgetStyle(key) },
-                        shape = SegmentedButtonDefaults.itemShape(index, styles.size),
-                    ) { Text(label) }
-                }
-            }
 
             Spacer(Modifier.height(20.dp))
             HorizontalDivider()
