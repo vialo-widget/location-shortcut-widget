@@ -21,6 +21,7 @@ NaviGo lets users (or their family and friends) pre-configure a set of named sho
 ### Key Features
 
 - **One-Tap Navigation** — Each shortcut opens Google Maps directions directly, skipping search and confirmation entirely.
+- **Home-Screen Widget** — A grid of large, labelled tiles you can pin on the home screen. The widget reflows to the size you give it: shrink it to fewer columns and it scrolls vertically; grow it taller and more rows appear automatically. Two palettes to choose from: **Bold** (colourful) and **Grey**.
 - **Simple, Senior-Friendly UI** — Large buttons, high-contrast text, and a minimal interface designed for readability and ease of use.
 - **Family & Friend Sharing** — Shortcuts can be shared via WhatsApp or any messaging app as a simple link. When the recipient taps the link, NaviGo opens with a one-tap confirmation to add the shortcut to their home screen.
 - **Easy Setup** — Adding a new shortcut is as simple as searching for a place once and giving it a name. Family members can set up shortcuts remotely by sharing them.
@@ -50,7 +51,7 @@ NaviGo is a native Android app (Kotlin + Jetpack Compose):
 - **WorkManager** for scheduled expiry-warning notifications
 - **Ktor** HTTP client over **OpenStreetMap Nominatim** for place search and reverse geocoding (no API key)
 - **Phosphor duotone icons** throughout the app and home-screen widget (`com.adamglin:phosphor-icon`)
-- **Native AppWidget** (`RemoteViews`) for the home-screen widget — frosted-glass and bold-colors styles
+- **Native AppWidget** (`RemoteViews` + `RemoteViewsService`) for the home-screen widget — scrollable `GridView` with dynamic column count from the user's chosen widget size, in Bold or Grey palettes
 - Android **share sheet** + a GitHub Pages redirect page (`docs/index.html`) for shareable links
 - **Verified App Links** via `assetlinks.json` on the GitHub Pages domain so shared HTTPS links open the app directly
 
