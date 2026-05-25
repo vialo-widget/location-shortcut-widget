@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive-icon background: base colour + a soft radial highlight anchored
+  near the top-left to give the icon a subtle glass sheen.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <color android:color="@color/ic_launcher_background" />
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.18"
+                android:centerY="0.18"
+                android:gradientRadius="65%p"
+                android:startColor="#40FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
+
+</layer-list>
