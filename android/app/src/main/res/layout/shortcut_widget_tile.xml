@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Single tile — inflated by ShortcutCollectionFactory#getViewAt and bound
+  to a shortcut. Width matches the parent GridView column; height is fixed
+  so the icon and label keep their proportions regardless of grid size.
+  Background drawable is set per-position from the active palette.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/slot"
+    android:layout_width="76dp"
+    android:layout_height="76dp"
+    android:layout_margin="2dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="6dp"
+    android:background="@drawable/widget_bold_bg"
+    android:foreground="@drawable/widget_bold_overlay"
+    android:foregroundGravity="fill">
+
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:tint="#FFFFFFFF"
+        android:src="@android:drawable/ic_menu_mylocation" />
+
+    <TextView
+        android:id="@+id/label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFFFF"
+        android:shadowColor="#66000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:paddingTop="2dp" />
+
+</LinearLayout>

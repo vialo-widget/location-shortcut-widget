@@ -93,5 +93,21 @@
                 android:resource="@xml/shortcut_widget_info" />
         </receiver>
 
+        <!-- Service that feeds tiles into the widget's GridView. The
+             BIND_REMOTEVIEWS permission limits binding to the OS, which is
+             required for any RemoteViewsService. -->
+        <service
+            android:name=".ShortcutWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+        <!-- Invisible trampoline that handles widget tile clicks: reads
+             lat/lng from the fill-in Intent and launches Google Maps. -->
+        <activity
+            android:name=".WidgetClickHandlerActivity"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
     </application>
 </manifest>

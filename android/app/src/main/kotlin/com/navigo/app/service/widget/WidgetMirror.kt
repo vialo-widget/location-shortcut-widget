@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import com.navigo.app.R
 import com.navigo.app.ShortcutWidgetProvider
 import com.navigo.app.data.model.Shortcut
 import org.json.JSONArray
@@ -19,17 +20,15 @@ import org.json.JSONObject
  * adds + edits propagate live by calling [mirrorShortcuts] after every DB
  * change (see [com.navigo.app.NaviGoApplication.onCreate]).
  *
- * The widget shows at most [MAX_WIDGET_SHORTCUTS] tiles; we trim here rather
- * than push the full list across.
+ * The full list is pushed across; the widget's GridView scrolls when tiles
+ * overflow its viewport, so no truncation is needed here.
  */
 class WidgetMirror(private val context: Context) {
 
     fun mirrorShortcuts(shortcuts: List<Shortcut>) {
-        val limited = shortcuts
-            .sortedWith(compareBy({ it.sortOrder }, { it.createdAt }))
-            .take(MAX_WIDGET_SHORTCUTS)
+        val sorted = shortcuts.sortedWith(compareBy({ it.sortOrder }, { it.createdAt }))
         val json = JSONArray()
-        limited.forEach { json.put(it.toWidgetJson()) }
+        sorted.forEach { json.put(it.toWidgetJson()) }
 
         prefs().edit()
             .putString(KEY_SHORTCUTS_JSON, json.toString())
@@ -50,9 +49,16 @@ class WidgetMirror(private val context: Context) {
         context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
     private fun broadcastUpdate() {
+        val manager = AppWidgetManager.getInstance(context)
         val component = ComponentName(context, ShortcutWidgetProvider::class.java)
-        val widgetIds = AppWidgetManager.getInstance(context).getAppWidgetIds(component)
+        val widgetIds = manager.getAppWidgetIds(component)
         if (widgetIds.isEmpty()) return
+
+        // notifyAppWidgetViewDataChanged tells each widget's GridView adapter
+        // to call onDataSetChanged on the factory, which re-reads prefs.
+        // The broadcast triggers onUpdate, which is what rebinds the adapter
+        // / column count if the widget hasn't been laid out yet.
+        manager.notifyAppWidgetViewDataChanged(widgetIds, R.id.shortcut_grid)
         val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
             this.component = component
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, widgetIds)
@@ -72,9 +78,6 @@ class WidgetMirror(private val context: Context) {
     }
 
     companion object {
-        /** Mirror up to a 6×2 = 12-tile grid. */
-        const val MAX_WIDGET_SHORTCUTS = 12
-
         /** Stored value for the default colourful palette. Kept as
          *  `boldColors` so widgets pinned before this branch (which read
          *  the same prefs key) keep landing on the bold style. */
