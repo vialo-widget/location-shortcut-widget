@@ -58,18 +58,29 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
             SlotIds(R.id.slot_11, R.id.icon_11, R.id.label_11),
         )
 
-        /** Tile backgrounds — six Tailwind 600 colours, each baked into its
-         *  own rounded shape drawable so setBackgroundResource preserves the
-         *  rounded silhouette (setBackgroundColor would replace it with a
-         *  square ColorDrawable). Cycled across the 12 slot positions via
-         *  `i % size`. */
-        private val slotDrawables = intArrayOf(
+        /** Tile backgrounds for the default "bold" style — six Tailwind 600
+         *  colours, each baked into its own rounded shape drawable so
+         *  setBackgroundResource preserves the rounded silhouette
+         *  (setBackgroundColor would replace it with a square ColorDrawable).
+         *  Cycled across the 12 slot positions via `i % size`. */
+        private val boldDrawables = intArrayOf(
             R.drawable.widget_bold_bg_0, // Indigo  #4F46E5
             R.drawable.widget_bold_bg_1, // Teal    #0D9488
             R.drawable.widget_bold_bg_2, // Orange  #EA580C
             R.drawable.widget_bold_bg_3, // Violet  #7C3AED
             R.drawable.widget_bold_bg_4, // Emerald #059669
             R.drawable.widget_bold_bg_5, // Rose    #E11D48
+        )
+
+        /** Tile backgrounds for the greyscale style — six neutrals (Tailwind
+         *  Gray + Zinc, 500–700) that read as a coordinated muted palette. */
+        private val greyDrawables = intArrayOf(
+            R.drawable.widget_grey_bg_0, // Gray 700 #374151
+            R.drawable.widget_grey_bg_1, // Gray 600 #4B5563
+            R.drawable.widget_grey_bg_2, // Gray 500 #6B7280
+            R.drawable.widget_grey_bg_3, // Zinc 700 #3F3F46
+            R.drawable.widget_grey_bg_4, // Zinc 600 #52525B
+            R.drawable.widget_grey_bg_5, // Zinc 500 #71717A
         )
 
         // Map icon name → drawable resource (matching the Phosphor duotone set).
@@ -91,6 +102,8 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         ): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.shortcut_widget)
             val shortcuts = parseShortcuts(widgetData)
+            val styleName = widgetData.getString("widget_style", "boldColors") ?: "boldColors"
+            val palette = if (styleName == "greyscale") greyDrawables else boldDrawables
 
             // Figure out how many tile columns fit in the current widget width.
             // pitch = tile width + horizontal margins on both sides.
@@ -116,7 +129,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
                     views.setImageViewResource(slot.icon, getIconRes(context, iconName))
                     views.setInt(
                         slot.container, "setBackgroundResource",
-                        slotDrawables[i % slotDrawables.size],
+                        palette[i % palette.size],
                     )
                     views.setOnClickPendingIntent(
                         slot.container,

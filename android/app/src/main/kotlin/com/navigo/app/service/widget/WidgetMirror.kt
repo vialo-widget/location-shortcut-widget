@@ -37,6 +37,15 @@ class WidgetMirror(private val context: Context) {
         broadcastUpdate()
     }
 
+    /** Currently-stored widget style — [STYLE_BOLD] (default) or [STYLE_GREYSCALE]. */
+    fun getWidgetStyle(): String =
+        prefs().getString(KEY_WIDGET_STYLE, STYLE_BOLD) ?: STYLE_BOLD
+
+    fun setWidgetStyle(style: String) {
+        prefs().edit().putString(KEY_WIDGET_STYLE, style).apply()
+        broadcastUpdate()
+    }
+
     private fun prefs() =
         context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
@@ -63,10 +72,18 @@ class WidgetMirror(private val context: Context) {
     }
 
     companion object {
-        /** Mirror up to a 6×2 = 12-tile bold grid. */
+        /** Mirror up to a 6×2 = 12-tile grid. */
         const val MAX_WIDGET_SHORTCUTS = 12
+
+        /** Stored value for the default colourful palette. Kept as
+         *  `boldColors` so widgets pinned before this branch (which read
+         *  the same prefs key) keep landing on the bold style. */
+        const val STYLE_BOLD = "boldColors"
+        /** Stored value for the greyscale palette. */
+        const val STYLE_GREYSCALE = "greyscale"
 
         private const val PREFS_FILE = "HomeWidgetPreferences"
         private const val KEY_SHORTCUTS_JSON = "shortcuts_json"
+        private const val KEY_WIDGET_STYLE = "widget_style"
     }
 }

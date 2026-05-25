@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Greyscale tile #0 — Gray 700. ~70% alpha, 20dp rounded corners; shares
+     widget_bold_overlay.xml for the glass touch. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#B3374151" />
+    <corners android:radius="20dp" />
+</shape>
