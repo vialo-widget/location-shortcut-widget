@@ -122,7 +122,11 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
 
             Spacer(Modifier.height(12.dp))
-            Text("Widget style", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "Widget style",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             val styles = listOf(
                 SettingsViewModel.STYLE_BOLD to "Bold",
@@ -138,6 +142,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 }
             }
 
+            /*
             Spacer(Modifier.height(20.dp))
             HorizontalDivider()
             Spacer(Modifier.height(20.dp))
@@ -153,6 +158,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     }
                 },
             )
+            */
 
             Spacer(Modifier.height(20.dp))
             HorizontalDivider()
@@ -170,6 +176,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 },
             )
 
+            /*
             Spacer(Modifier.height(20.dp))
             HorizontalDivider()
             Spacer(Modifier.height(20.dp))
@@ -181,6 +188,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     OutlinedButton(onClick = vm::pruneExpired) { Text("Clear") }
                 },
             )
+            */
 
             Spacer(Modifier.height(20.dp))
             HorizontalDivider()
@@ -218,7 +226,11 @@ private fun SettingRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(modifier = Modifier.weight(1f, fill = true)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
             Text(
                 subtitle,
                 style = MaterialTheme.typography.bodySmall,

@@ -109,7 +109,11 @@ fun EditShortcutScreen(
             )
 
             Spacer(Modifier.height(20.dp))
-            Text("Location", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Location",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             LocationRow(
                 address = state.address,
@@ -117,7 +121,11 @@ fun EditShortcutScreen(
             )
 
             Spacer(Modifier.height(20.dp))
-            Text("Icon", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Icon",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             IconPickerCompact(
                 selectedKey = state.iconKey,
@@ -125,7 +133,11 @@ fun EditShortcutScreen(
             )
 
             Spacer(Modifier.height(20.dp))
-            Text("Expires in", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Expires in",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
 
