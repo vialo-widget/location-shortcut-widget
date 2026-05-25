@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">NaviGo</string>
     <string name="widget_description">One-tap navigation to your favourite places</string>
+    <string name="widget_empty_state">Add shortcuts in NaviGo to see them here.</string>
 </resources>
