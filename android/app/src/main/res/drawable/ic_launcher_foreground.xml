@@ -42,7 +42,7 @@
 
     <!-- Navigation arrow - left half (soft blue) -->
     <path
-        android:fillColor="#A5D6A7"
+        android:fillColor="#BDBDBD"
         android:pathData="M73.8,34.2 L48.3,59.7 L59.7,48.3 Z" />
 
     <!-- Arrow tail - right half (faded white) -->
@@ -53,7 +53,7 @@
 
     <!-- Arrow tail - left half (faded blue) -->
     <path
-        android:fillColor="#A5D6A7"
+        android:fillColor="#BDBDBD"
         android:fillAlpha="0.3"
         android:pathData="M34.2,73.8 L59.7,48.3 L48.3,59.7 Z" />
 
