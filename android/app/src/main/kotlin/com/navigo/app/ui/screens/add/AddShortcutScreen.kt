@@ -110,12 +110,20 @@ fun AddShortcutScreen(
             }
 
             Spacer(Modifier.height(20.dp))
-            Text("Icon", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Icon",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             IconPicker(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
 
             Spacer(Modifier.height(20.dp))
-            Text("Expires in", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Expires in",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
 
