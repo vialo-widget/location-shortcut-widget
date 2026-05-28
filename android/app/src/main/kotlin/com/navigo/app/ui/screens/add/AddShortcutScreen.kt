@@ -36,7 +36,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.navigo.app.ui.LocalGraph
 import com.navigo.app.ui.components.ExpiryPicker
-import com.navigo.app.ui.components.IconPicker
+import com.navigo.app.ui.components.IconPickerCompact
 import com.navigo.app.ui.components.PlaceSearchField
 import com.navigo.app.ui.components.SaveBlockerDialog
 
@@ -116,7 +116,7 @@ fun AddShortcutScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(8.dp))
-            IconPicker(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
+            IconPickerCompact(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
 
             Spacer(Modifier.height(20.dp))
             Text(
