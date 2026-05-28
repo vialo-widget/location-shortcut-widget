@@ -25,13 +25,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build debug APK
+      - name: Build release APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease
 
       - name: Extract APK signing fingerprint
         run: |
-          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          APK=android/app/build/outputs/apk/release/app-release.apk
           FINGERPRINT=$(keytool -printcert -jarfile "$APK" | grep "SHA256:" | awk '{print $2}')
           echo "APK_FINGERPRINT=$FINGERPRINT" >> "$GITHUB_ENV"
           echo "APK signing SHA-256: $FINGERPRINT"
@@ -39,8 +39,8 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: app-release
+          path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Update latest release
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -49,8 +49,8 @@ jobs:
           tag_name: latest
           name: Latest Build
           body: |
-            Latest NaviGo debug APK from main.
-            Install on any modern Android phone (arm64). Debug signing — for testing only.
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+            Latest NaviGo release APK from main.
+            Install on any modern Android phone (arm64). Shrunk + minified build.
+          files: android/app/build/outputs/apk/release/app-release.apk
           prerelease: false
           make_latest: true
