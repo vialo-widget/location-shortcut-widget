@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.navigo.app.R
 import com.navigo.app.ShortcutWidgetProvider
 import com.navigo.app.data.model.Shortcut
@@ -52,6 +53,7 @@ class WidgetMirror(private val context: Context) {
         val manager = AppWidgetManager.getInstance(context)
         val component = ComponentName(context, ShortcutWidgetProvider::class.java)
         val widgetIds = manager.getAppWidgetIds(component)
+        Log.d("NaviGoWidget", "WidgetMirror.broadcastUpdate ids=${widgetIds.toList()}")
         if (widgetIds.isEmpty()) return
 
         // notifyAppWidgetViewDataChanged tells each widget's GridView adapter

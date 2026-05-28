@@ -1,6 +1,7 @@
 package com.navigo.app
 
 import android.content.Intent
+import android.util.Log
 import android.widget.RemoteViewsService
 
 /**
@@ -8,6 +9,8 @@ import android.widget.RemoteViewsService
  * calls into [ShortcutCollectionFactory] across processes to build each tile.
  */
 class ShortcutWidgetService : RemoteViewsService() {
-    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
-        ShortcutCollectionFactory(applicationContext)
+    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
+        Log.d("NaviGoWidget", "Service.onGetViewFactory data=${intent.data}")
+        return ShortcutCollectionFactory(applicationContext)
+    }
 }

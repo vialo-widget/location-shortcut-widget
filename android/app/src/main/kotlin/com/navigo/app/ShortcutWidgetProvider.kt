@@ -7,7 +7,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.RemoteViews
+
+private const val LOG_TAG = "NaviGoWidget"
 
 /**
  * NaviGo home-screen widget — a scrollable grid of fixed-width tiles.
@@ -37,10 +40,12 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
 
             // Bind the GridView to the RemoteViewsService. The Intent's data
             // must be unique per widget ID, otherwise Android caches and
-            // reuses a single factory across widget instances.
+            // reuses a single factory across widget instances. Use a simple
+            // bespoke scheme rather than toUri(URI_INTENT_SCHEME) so the URI
+            // is short and unambiguous for launchers' cache keys.
             val serviceIntent = Intent(context, ShortcutWidgetService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
+                data = Uri.parse("navigo-widget://appwidget/$appWidgetId")
             }
             views.setRemoteAdapter(R.id.shortcut_grid, serviceIntent)
             views.setEmptyView(R.id.shortcut_grid, R.id.empty_view)
@@ -50,6 +55,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
             val availableDp = (widthDp - 2 * GRID_PADDING_DP).coerceAtLeast(pitchDp)
             val numCols = (availableDp / pitchDp).coerceAtLeast(1)
             views.setInt(R.id.shortcut_grid, "setNumColumns", numCols)
+            Log.d(LOG_TAG, "buildRemoteViews id=$appWidgetId widthDp=$widthDp numCols=$numCols")
 
             // Single pending-intent template; each tile's fill-in Intent
             // supplies its own lat/lng extras. Must be MUTABLE so the framework
@@ -73,6 +79,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
+        Log.d(LOG_TAG, "onUpdate ids=${appWidgetIds.toList()}")
         for (id in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(id)
             val views = buildRemoteViews(context, id, widgetWidthDp(options))
@@ -89,6 +96,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         appWidgetId: Int,
         newOptions: Bundle,
     ) {
+        Log.d(LOG_TAG, "onAppWidgetOptionsChanged id=$appWidgetId")
         val views = buildRemoteViews(context, appWidgetId, widgetWidthDp(newOptions))
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
