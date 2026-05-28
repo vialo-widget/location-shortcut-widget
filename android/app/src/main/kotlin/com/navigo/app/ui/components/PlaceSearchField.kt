@@ -55,11 +55,20 @@ fun PlaceSearchField(
     var results by remember { mutableStateOf<List<PlaceResult>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorText by remember { mutableStateOf<String?>(null) }
+    // Tracks the display name we just inserted into the field via a result
+    // tap, so we can suppress the LaunchedEffect search that the programmatic
+    // query update would otherwise trigger (which caused a second dropdown
+    // to appear with matches for the chosen place's full name).
+    var lastSelectedDisplayName by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(query) {
         if (query.length < 3) {
             results = emptyList()
             errorText = null
+            return@LaunchedEffect
+        }
+        if (query == lastSelectedDisplayName) {
+            // Programmatic update from a result tap — nothing to search for.
             return@LaunchedEffect
         }
         isLoading = true
@@ -78,7 +87,12 @@ fun PlaceSearchField(
     Column(modifier = modifier) {
         OutlinedTextField(
             value = query,
-            onValueChange = { query = it },
+            onValueChange = {
+                query = it
+                // User typing into the field invalidates the "this is the
+                // selected place" marker; further changes should search again.
+                lastSelectedDisplayName = null
+            },
             placeholder = { Text("Search for a place...") },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             trailingIcon = {
@@ -125,6 +139,7 @@ fun PlaceSearchField(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
+                                    lastSelectedDisplayName = result.displayName
                                     query = result.displayName
                                     results = emptyList()
                                     errorText = null
