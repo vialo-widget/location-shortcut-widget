@@ -117,6 +117,7 @@ fun IconPickerCompact(
             Text(
                 ShortcutIconCatalog.labelFor(selectedKey),
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 "Tap “Show more” to pick a different icon.",

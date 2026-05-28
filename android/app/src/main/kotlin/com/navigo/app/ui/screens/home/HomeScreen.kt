@@ -107,7 +107,12 @@ fun HomeScreen(
             state.isLoading -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
-            ) { Text("Loading…") }
+            ) {
+                Text(
+                    "Loading…",
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
 
             state.shortcuts.isEmpty() -> EmptyHomeState(
                 modifier = Modifier.fillMaxSize().padding(padding),
@@ -180,6 +185,7 @@ private fun ShortcutTile(
                 text = shortcut.label,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -274,6 +280,7 @@ private fun EmptyHomeState(modifier: Modifier = Modifier) {
             text = "No shortcuts yet",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = "Tap “Add shortcut” to save your first place.",

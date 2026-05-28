@@ -29,8 +29,20 @@ class AppSettings(private val context: Context) {
         store.edit { it[Keys.ImportedFromWidgetPrefs] = true }
     }
 
+    /** Has the user already been through the first-launch onboarding screen
+     *  (where we ask for notification + location permission and offer to pin
+     *  the widget)? Gates whether [com.navigo.app.ui.NaviGoApp] starts on
+     *  the Home destination or the Onboarding destination. */
+    val hasSeenOnboarding: Flow<Boolean> =
+        store.data.map { it[Keys.HasSeenOnboarding] ?: false }
+
+    suspend fun markOnboardingSeen() {
+        store.edit { it[Keys.HasSeenOnboarding] = true }
+    }
+
     private object Keys {
         val ImportedFromWidgetPrefs = booleanPreferencesKey("imported_from_widget_prefs")
+        val HasSeenOnboarding = booleanPreferencesKey("has_seen_onboarding")
     }
 
     private companion object {

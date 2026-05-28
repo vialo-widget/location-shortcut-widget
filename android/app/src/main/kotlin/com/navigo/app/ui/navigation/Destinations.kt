@@ -6,6 +6,7 @@ package com.navigo.app.ui.navigation
  * templates — overkill avoided until the surface area grows.
  */
 object Destinations {
+    const val ONBOARDING = "onboarding"
     const val HOME = "home"
     const val ADD = "add"
     const val CONFIRM_ADD = "confirm_add"

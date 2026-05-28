@@ -11,13 +11,27 @@ import com.navigo.app.ui.screens.add.AddShortcutScreen
 import com.navigo.app.ui.screens.confirm.ConfirmAddScreen
 import com.navigo.app.ui.screens.edit.EditShortcutScreen
 import com.navigo.app.ui.screens.home.HomeScreen
+import com.navigo.app.ui.screens.onboarding.OnboardingScreen
 import com.navigo.app.ui.screens.settings.SettingsScreen
 
 @Composable
 fun NaviGoNavHost(
+    startDestination: String = Destinations.HOME,
     navController: NavHostController = rememberNavController(),
 ) {
-    NavHost(navController = navController, startDestination = Destinations.HOME) {
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(Destinations.ONBOARDING) {
+            OnboardingScreen(
+                onDone = {
+                    navController.navigate(Destinations.HOME) {
+                        // Pop the onboarding entry so back from Home exits
+                        // the app instead of bringing the user back here.
+                        popUpTo(Destinations.ONBOARDING) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
         composable(Destinations.HOME) {
             HomeScreen(
                 onAddShortcut = { navController.navigate(Destinations.ADD) },

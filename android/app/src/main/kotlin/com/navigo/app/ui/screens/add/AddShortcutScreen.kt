@@ -36,7 +36,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.navigo.app.ui.LocalGraph
 import com.navigo.app.ui.components.ExpiryPicker
-import com.navigo.app.ui.components.IconPicker
+import com.navigo.app.ui.components.IconPickerCompact
 import com.navigo.app.ui.components.PlaceSearchField
 import com.navigo.app.ui.components.SaveBlockerDialog
 
@@ -110,12 +110,20 @@ fun AddShortcutScreen(
             }
 
             Spacer(Modifier.height(20.dp))
-            Text("Icon", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Icon",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
-            IconPicker(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
+            IconPickerCompact(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
 
             Spacer(Modifier.height(20.dp))
-            Text("Expires in", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Expires in",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(Modifier.height(8.dp))
             ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
 

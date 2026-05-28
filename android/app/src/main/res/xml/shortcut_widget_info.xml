@@ -12,9 +12,8 @@
     * minResize lets the user shrink down to a single 1×1-icon tile if they
       want; maxResize lets it grow to the launcher's edge.
 
-  Tiles are bound by ShortcutCollectionFactory and the column count is set
-  at runtime from the widget's width; the GridView scrolls vertically when
-  the user's shortcut list overflows the available height.
+  Tiles inside the widget are fixed 1×1-icon size — see how many fit per row
+  and rendering logic in ShortcutWidgetProvider#buildRemoteViews.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="350dp"

@@ -1,6 +1,8 @@
 package com.navigo.app.ui.screens.settings
 
 import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,7 +43,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -52,6 +58,7 @@ import com.navigo.app.ui.LocalGraph
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
     val graph = LocalGraph.current
     val bridges = LocalActivityBridges.current
     val vm: SettingsViewModel = viewModel(
@@ -60,10 +67,26 @@ fun SettingsScreen(onBack: () -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
 
-    // POST_NOTIFICATIONS permission launcher (Android 13+).
+    // Permission + widget-pin state — refreshed on every resume so changes
+    // made via the system Settings screen (or by adding/removing the widget
+    // on the home screen) reflect when the user returns to this screen.
+    var notificationsGranted by remember { mutableStateOf(isNotificationsGranted(context)) }
+    var locationGranted by remember { mutableStateOf(isLocationGranted(context)) }
+    var widgetPinned by remember { mutableStateOf(bridges.isWidgetPinned()) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        notificationsGranted = isNotificationsGranted(context)
+        locationGranted = isLocationGranted(context)
+        widgetPinned = bridges.isWidgetPinned()
+    }
+
     val notifPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { /* result handled implicitly by the system */ }
+    ) { granted -> notificationsGranted = granted }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { result ->
+        locationGranted = result.values.any { it }
+    }
 
     var pinResultMessage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(pinResultMessage) {
@@ -106,22 +129,24 @@ fun SettingsScreen(onBack: () -> Unit) {
         ) {
             Spacer(Modifier.height(12.dp))
             SectionLabel("Widget")
-            SettingRow(
-                title = "Pin widget to home screen",
-                subtitle = "Adds a NaviGo widget for one-tap navigation.",
-                action = {
-                    Button(onClick = {
-                        val launched = bridges.requestPinWidget()
-                        pinResultMessage = if (launched) {
-                            "Pin request sent — follow the system prompt."
-                        } else {
-                            "Drag the NaviGo widget from your launcher's widget picker."
-                        }
-                    }) { Text("Add widget") }
-                },
-            )
+            if (!widgetPinned) {
+                SettingRow(
+                    title = "Pin widget to home screen",
+                    subtitle = "Adds a NaviGo widget for one-tap navigation.",
+                    action = {
+                        Button(onClick = {
+                            val launched = bridges.requestPinWidget()
+                            pinResultMessage = if (launched) {
+                                "Pin request sent — follow the system prompt."
+                            } else {
+                                "Drag the NaviGo widget from your launcher's widget picker."
+                            }
+                        }) { Text("Add widget") }
+                    },
+                )
+                Spacer(Modifier.height(12.dp))
+            }
 
-            Spacer(Modifier.height(12.dp))
             Text(
                 "Widget style",
                 style = MaterialTheme.typography.bodySmall,
@@ -160,21 +185,48 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
             */
 
-            Spacer(Modifier.height(20.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(20.dp))
-            SectionLabel("Notifications")
-            SettingRow(
-                title = "Allow expiry warnings",
-                subtitle = "Notifies you a few days before a shortcut expires.",
-                action = {
-                    OutlinedButton(onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                    }) { Text("Request") }
-                },
-            )
+            // Permissions section: shown only when at least one permission is
+            // missing. Each row is rendered only for the missing one(s); when
+            // the user grants both, the whole section disappears on the next
+            // resume.
+            val needsNotifications = !notificationsGranted &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            val needsLocation = !locationGranted
+            if (needsNotifications || needsLocation) {
+                Spacer(Modifier.height(20.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(20.dp))
+                SectionLabel("Permissions")
+                if (needsNotifications) {
+                    SettingRow(
+                        title = "Allow notifications",
+                        subtitle = "Get reminded a few days before a shortcut expires.",
+                        action = {
+                            OutlinedButton(onClick = {
+                                notifPermissionLauncher.launch(
+                                    Manifest.permission.POST_NOTIFICATIONS,
+                                )
+                            }) { Text("Request") }
+                        },
+                    )
+                }
+                if (needsLocation) {
+                    SettingRow(
+                        title = "Allow location access",
+                        subtitle = "Needed for \"Save where I am\" on the Add screen.",
+                        action = {
+                            OutlinedButton(onClick = {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    ),
+                                )
+                            }) { Text("Request") }
+                        },
+                    )
+                }
+            }
 
             /*
             Spacer(Modifier.height(20.dp))
@@ -201,6 +253,26 @@ fun SettingsScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(24.dp))
         }
     }
+}
+
+/** POST_NOTIFICATIONS is a runtime permission only on API 33+; below that
+ *  the system grants notifications by default. */
+private fun isNotificationsGranted(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+    return ContextCompat.checkSelfPermission(
+        context, Manifest.permission.POST_NOTIFICATIONS,
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
+/** Either fine or coarse is enough for "Save where I am" to work. */
+private fun isLocationGranted(context: Context): Boolean {
+    val fine = ContextCompat.checkSelfPermission(
+        context, Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    val coarse = ContextCompat.checkSelfPermission(
+        context, Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    return fine || coarse
 }
 
 @Composable
