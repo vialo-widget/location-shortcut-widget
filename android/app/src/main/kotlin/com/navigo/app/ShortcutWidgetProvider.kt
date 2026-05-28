@@ -7,10 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.RemoteViews
-
-private const val LOG_TAG = "NaviGoWidget"
+import com.navigo.app.service.widget.WidgetDebugLog
 
 /**
  * NaviGo home-screen widget — a scrollable grid of fixed-width tiles.
@@ -55,7 +53,10 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
             val availableDp = (widthDp - 2 * GRID_PADDING_DP).coerceAtLeast(pitchDp)
             val numCols = (availableDp / pitchDp).coerceAtLeast(1)
             views.setInt(R.id.shortcut_grid, "setNumColumns", numCols)
-            Log.d(LOG_TAG, "buildRemoteViews id=$appWidgetId widthDp=$widthDp numCols=$numCols")
+            WidgetDebugLog.log(
+                context,
+                "buildRemoteViews id=$appWidgetId widthDp=$widthDp numCols=$numCols",
+            )
 
             // Single pending-intent template; each tile's fill-in Intent
             // supplies its own lat/lng extras. Must be MUTABLE so the framework
@@ -79,7 +80,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        Log.d(LOG_TAG, "onUpdate ids=${appWidgetIds.toList()}")
+        WidgetDebugLog.log(context, "onUpdate ids=${appWidgetIds.toList()}")
         for (id in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(id)
             val views = buildRemoteViews(context, id, widgetWidthDp(options))
@@ -96,7 +97,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         appWidgetId: Int,
         newOptions: Bundle,
     ) {
-        Log.d(LOG_TAG, "onAppWidgetOptionsChanged id=$appWidgetId")
+        WidgetDebugLog.log(context, "onAppWidgetOptionsChanged id=$appWidgetId")
         val views = buildRemoteViews(context, appWidgetId, widgetWidthDp(newOptions))
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

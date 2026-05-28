@@ -1,8 +1,8 @@
 package com.navigo.app
 
 import android.content.Intent
-import android.util.Log
 import android.widget.RemoteViewsService
+import com.navigo.app.service.widget.WidgetDebugLog
 
 /**
  * Bound by the widget's GridView via RemoteViews#setRemoteAdapter — the OS
@@ -10,7 +10,10 @@ import android.widget.RemoteViewsService
  */
 class ShortcutWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
-        Log.d("NaviGoWidget", "Service.onGetViewFactory data=${intent.data}")
+        WidgetDebugLog.log(
+            applicationContext,
+            "Service.onGetViewFactory data=${intent.data}",
+        )
         return ShortcutCollectionFactory(applicationContext)
     }
 }

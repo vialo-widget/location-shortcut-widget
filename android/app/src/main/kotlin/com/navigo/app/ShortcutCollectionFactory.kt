@@ -2,12 +2,10 @@ package com.navigo.app
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import com.navigo.app.service.widget.WidgetDebugLog
 import org.json.JSONArray
-
-private const val LOG_TAG = "NaviGoWidget"
 
 private const val WIDGET_PREFS = "HomeWidgetPreferences"
 private const val KEY_SHORTCUTS_JSON = "shortcuts_json"
@@ -28,31 +26,36 @@ class ShortcutCollectionFactory(
     private var palette: IntArray = boldDrawables
 
     override fun onCreate() {
-        Log.d(LOG_TAG, "Factory.onCreate")
+        WidgetDebugLog.log(context, "Factory.onCreate")
     }
 
     override fun onDestroy() {
-        Log.d(LOG_TAG, "Factory.onDestroy")
+        WidgetDebugLog.log(context, "Factory.onDestroy")
     }
 
     override fun onDataSetChanged() {
         val prefs = context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
         items = runCatching { JSONArray(prefs.getString(KEY_SHORTCUTS_JSON, "[]") ?: "[]") }
-            .onFailure { Log.w(LOG_TAG, "Factory.onDataSetChanged JSON parse failed", it) }
+            .onFailure {
+                WidgetDebugLog.log(context, "Factory.onDataSetChanged JSON parse failed: $it")
+            }
             .getOrDefault(JSONArray())
         val style = prefs.getString(KEY_WIDGET_STYLE, "boldColors") ?: "boldColors"
         palette = if (style == STYLE_GREYSCALE) greyDrawables else boldDrawables
-        Log.d(LOG_TAG, "Factory.onDataSetChanged items=${items.length()} style=$style")
+        WidgetDebugLog.log(
+            context,
+            "Factory.onDataSetChanged items=${items.length()} style=$style",
+        )
     }
 
     override fun getCount(): Int {
         val n = items.length()
-        Log.d(LOG_TAG, "Factory.getCount=$n")
+        WidgetDebugLog.log(context, "Factory.getCount=$n")
         return n
     }
 
     override fun getViewAt(position: Int): RemoteViews {
-        Log.d(LOG_TAG, "Factory.getViewAt position=$position")
+        WidgetDebugLog.log(context, "Factory.getViewAt position=$position")
         val rv = RemoteViews(context.packageName, R.layout.shortcut_widget_tile)
         val sc = items.optJSONObject(position) ?: return rv
 
