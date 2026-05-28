@@ -163,6 +163,12 @@
       const lat = params.get('lat');
       const lng = params.get('lng');
       const icon = params.get('icon') || 'place';
+      // Optional metadata — forward whatever the sender included so the
+      // recipient's Edit screen shows the address and the expiry token
+      // is honoured. Missing these used to silently drop them.
+      const address = params.get('address') || '';
+      const placeId = params.get('placeId') || '';
+      const expiry = params.get('expiry') || '';
 
       const statusMsg = document.getElementById('status-msg');
 
@@ -171,7 +177,10 @@
         return;
       }
 
-      const queryParams = 'label=' + encodeURIComponent(label) + '&lat=' + lat + '&lng=' + lng + '&icon=' + icon;
+      let queryParams = 'label=' + encodeURIComponent(label) + '&lat=' + lat + '&lng=' + lng + '&icon=' + encodeURIComponent(icon);
+      if (address) queryParams += '&address=' + encodeURIComponent(address);
+      if (placeId) queryParams += '&placeId=' + encodeURIComponent(placeId);
+      if (expiry) queryParams += '&expiry=' + encodeURIComponent(expiry);
       const deepLink = 'navigo://add?' + queryParams;
 
       // Build the fallback URL: same page + opened=1 so we skip the intent retry

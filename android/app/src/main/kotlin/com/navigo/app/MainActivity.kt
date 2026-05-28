@@ -62,7 +62,10 @@ class MainActivity : ComponentActivity() {
         if (!isCustomScheme && !isAppLink) return
 
         val normalised = if (isAppLink) {
-            val params = data.query ?: ""
+            // encodedQuery preserves percent-escapes; data.query would decode
+            // first, then we'd splice it back into a URI as if still encoded —
+            // which mangles values containing `&`, `=`, or `+`.
+            val params = data.encodedQuery ?: ""
             Uri.parse("navigo://add?$params")
         } else {
             data
