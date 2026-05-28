@@ -66,7 +66,10 @@ class ShortcutCollectionFactory(
 
         rv.setTextViewText(R.id.label, label)
         rv.setImageViewResource(R.id.icon, getIconRes(iconName))
-        rv.setInt(R.id.slot, "setBackgroundResource", palette[position % palette.size])
+        // Tile background lives in a dedicated ImageView (slot_bg) so the
+        // root FrameLayout stays decoration-free. See shortcut_widget_tile.xml
+        // for why this matters under OneUI's widget host.
+        rv.setImageViewResource(R.id.slot_bg, palette[position % palette.size])
 
         if (!lat.isNaN() && !lng.isNaN()) {
             val fillIn = Intent().apply {

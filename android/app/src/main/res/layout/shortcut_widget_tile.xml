@@ -1,46 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Single tile — inflated by ShortcutCollectionFactory#getViewAt and bound
-  to a shortcut. Width matches the parent GridView column; height is fixed
-  so the icon and label keep their proportions regardless of grid size.
-  Background drawable is set per-position from the active palette.
+  to a shortcut. Restructured so the root is a clean FrameLayout with no
+  background or foreground decoration of its own; the coloured palette
+  drawable and the glass-overlay drawable each sit in their own
+  ImageView child. Some launcher widget hosts (OneUI in particular) have
+  trouble with `android:foreground` on a collection-item's root view, so
+  this z-stack keeps every layer in a place those hosts are happy to
+  render.
+
+  Click handling remains on the root (id = slot) — the fill-in Intent
+  from the factory and the PendingIntentTemplate on the GridView meet
+  here.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/slot"
     android:layout_width="76dp"
     android:layout_height="76dp"
-    android:layout_margin="2dp"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="6dp"
-    android:background="@drawable/widget_bold_bg"
-    android:foreground="@drawable/widget_bold_overlay"
-    android:foregroundGravity="fill">
+    android:layout_margin="2dp">
 
+    <!-- Coloured backdrop. Source is swapped per-position by the factory
+         to cycle through the active palette (bold or grey). -->
     <ImageView
-        android:id="@+id/icon"
+        android:id="@+id/slot_bg"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scaleType="fitCenter"
-        android:adjustViewBounds="true"
-        android:tint="#FFFFFFFF"
-        android:src="@android:drawable/ic_menu_mylocation" />
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@null"
+        android:src="@drawable/widget_bold_bg_0" />
 
-    <TextView
-        android:id="@+id/label"
+    <!-- Icon + label, padded so they sit inside the rounded corners. -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         android:gravity="center"
-        android:textSize="10sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFFFF"
-        android:shadowColor="#66000000"
-        android:shadowDx="0"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:paddingTop="2dp" />
+        android:padding="6dp">
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tint="#FFFFFFFF"
+            android:src="@android:drawable/ic_menu_mylocation" />
+
+        <TextView
+            android:id="@+id/label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFFFF"
+            android:shadowColor="#66000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingTop="2dp" />
+
+    </LinearLayout>
+
+    <!-- Glass-overlay layer drawn on top. Translucent, so the colour
+         from slot_bg shows through. -->
+    <ImageView
+        android:id="@+id/slot_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@null"
+        android:src="@drawable/widget_bold_overlay" />
+
+</FrameLayout>
