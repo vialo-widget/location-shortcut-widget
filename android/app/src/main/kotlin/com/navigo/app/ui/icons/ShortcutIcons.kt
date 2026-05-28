@@ -1,8 +1,11 @@
 package com.navigo.app.ui.icons
 
 import androidx.compose.foundation.Image
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import com.adamglin.PhosphorIcons
@@ -121,21 +124,26 @@ private val AUTODETECT_PATTERNS: List<Pair<String, List<String>>> = listOf(
 
 /**
  * Renders a Phosphor duotone icon as an [Image] (not [androidx.compose.material3.Icon])
- * so the duotone fill is preserved instead of being flattened to a single tint.
+ * so the duotone fill stays a duotone instead of being flattened to a single solid.
  *
- * The Phosphor primary path uses Color.Black and the secondary path uses 20%
- * alpha black — readable on light surfaces. Dark-theme styling is a design-pass
- * concern; revisit before shipping a polished UI.
+ * The Phosphor vector paints its primary path at 100% black and its secondary
+ * path at 20% black. We apply a [ColorFilter.tint] with the default `SrcIn`
+ * blend mode so each pixel becomes [tint] at its existing alpha — the primary
+ * shape adopts `tint`, the secondary shape adopts `tint` at 20% alpha, and the
+ * two-tone effect survives the recolour. Default tint follows the theme's
+ * `onSurface`, so the icon stays readable in light *and* dark mode.
  */
 @Composable
 fun ShortcutIcon(
     imageVector: ImageVector,
     contentDescription: String?,
     modifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Image(
         painter = rememberVectorPainter(image = imageVector),
         contentDescription = contentDescription,
+        colorFilter = ColorFilter.tint(tint),
         modifier = modifier,
     )
 }

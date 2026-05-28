@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Background colour painted underneath the adaptive launcher icon's
+         foreground vector. Kept at true black so the icon reads as a clean
+         monochrome plate on every wallpaper. -->
     <color name="ic_launcher_background">#000000</color>
+
+    <!-- Background for the splash screen. Intentionally diverged from
+         ic_launcher_background so we don't subject every cold-start screen
+         to true black — softer near-black reads less aggressive on first
+         launch while preserving the greyscale palette. -->
+    <color name="splash_background">#1F1F1F</color>
 </resources>
