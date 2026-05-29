@@ -42,9 +42,27 @@ android {
         }
     }
 
+    // Release signing config — reads keystore path/passwords from
+    // ~/.gradle/gradle.properties (off-repo). If those properties are
+    // absent (e.g. on CI), the release build falls back to the debug
+    // keystore so testing distribution still works.
+    signingConfigs {
+        release {
+            def storeFilePath = findProperty('VIALO_RELEASE_STORE_FILE')
+            if (storeFilePath) {
+                storeFile file(storeFilePath.replaceFirst('^~', System.getProperty('user.home')))
+                storePassword findProperty('VIALO_RELEASE_STORE_PASSWORD') ?: ''
+                keyAlias findProperty('VIALO_RELEASE_KEY_ALIAS') ?: 'vialo'
+                keyPassword findProperty('VIALO_RELEASE_KEY_PASSWORD') ?: ''
+            }
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig signingConfigs.debug
+            signingConfig findProperty('VIALO_RELEASE_STORE_FILE')
+                ? signingConfigs.release
+                : signingConfigs.debug
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
