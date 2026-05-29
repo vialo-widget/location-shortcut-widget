@@ -19,7 +19,7 @@ import com.vialo.app.data.model.Shortcut
  */
 object ShareService {
 
-    private const val BASE_URL = "https://vialo-widget.github.io/location-shortcut-widget/"
+    private const val BASE_URL = "https://vialo-widget.github.io/"
     private const val ADDRESS_MAX_LEN = 200
 
     fun buildShareUrl(shortcut: Shortcut): String {
