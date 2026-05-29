@@ -1,8 +1,8 @@
-# NaviGo
+# Vialo
 
 **One-tap navigation for the people who need it most.**
 
-NaviGo is a mobile app designed for elderly users and anyone with limited technology exposure. It removes the friction of searching, verifying, and navigating through Google Maps by turning frequently visited places into simple, large home-screen shortcuts that open turn-by-turn navigation in a single tap.
+Vialo is a mobile app designed for elderly users and anyone with limited technology exposure. It removes the friction of searching, verifying, and navigating through Google Maps by turning frequently visited places into simple, large home-screen shortcuts that open turn-by-turn navigation in a single tap.
 
 ## The Problem
 
@@ -16,14 +16,14 @@ For many elderly users, each of these steps is a potential point of confusion �
 
 ## The Solution
 
-NaviGo lets users (or their family and friends) pre-configure a set of named shortcuts — **Home, Hospital, Bank, Grocery Store, Temple**, or any place that matters — displayed as large, clearly labeled buttons on the home screen. Tapping a shortcut immediately opens Google Maps with navigation to that destination. No searching, no verifying, no extra taps.
+Vialo lets users (or their family and friends) pre-configure a set of named shortcuts — **Home, Hospital, Bank, Grocery Store, Temple**, or any place that matters — displayed as large, clearly labeled buttons on the home screen. Tapping a shortcut immediately opens Google Maps with navigation to that destination. No searching, no verifying, no extra taps.
 
 ### Key Features
 
 - **One-Tap Navigation** — Each shortcut opens Google Maps directions directly, skipping search and confirmation entirely.
 - **Home-Screen Widget** — A grid of large, labelled tiles you can pin on the home screen. The widget reflows the tiles to fit the size you give it. Two palettes to choose from: **Bold** (colourful) and **Grey**.
 - **Simple, Senior-Friendly UI** — Large buttons, high-contrast text, and a minimal interface designed for readability and ease of use.
-- **Family & Friend Sharing** — Shortcuts can be shared via WhatsApp or any messaging app as a simple link. When the recipient taps the link, NaviGo opens with a one-tap confirmation to add the shortcut to their home screen.
+- **Family & Friend Sharing** — Shortcuts can be shared via WhatsApp or any messaging app as a simple link. When the recipient taps the link, Vialo opens with a one-tap confirmation to add the shortcut to their home screen.
 - **Easy Setup** — Adding a new shortcut is as simple as searching for a place once and giving it a name. Family members can set up shortcuts remotely by sharing them.
 - **Customizable Labels & Icons** — Each shortcut can have a friendly name and Phosphor duotone icon (e.g., a house for Home, a hospital cross for Hospital) so users recognize destinations at a glance.
 
@@ -44,7 +44,7 @@ This means a son or daughter in another city can set up their parent's entire sh
 
 ## Tech Stack
 
-NaviGo is a native Android app (Kotlin + Jetpack Compose):
+Vialo is a native Android app (Kotlin + Jetpack Compose):
 
 - **Kotlin & Jetpack Compose** with Material 3 — UI, navigation, theming
 - **Room** for the shortcut database; **DataStore** for app preferences

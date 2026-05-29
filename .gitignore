@@ -29,3 +29,9 @@ Thumbs.db
 
 # Worktrees
 .claude/worktrees/
+
+# Flutter (legacy — pre-native-migration)
+.dart_tool/
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies

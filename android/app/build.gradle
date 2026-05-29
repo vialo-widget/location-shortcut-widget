@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace 'com.navigo.app'
+    namespace 'com.vialo.app'
     compileSdk 35
 
     defaultConfig {
-        applicationId 'com.navigo.app'
+        applicationId 'com.vialo.app'
         minSdk 26
         targetSdk 35
         versionCode 2

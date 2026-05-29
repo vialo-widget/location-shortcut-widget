@@ -37,18 +37,18 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
-        android:name=".NaviGoApplication"
+        android:name=".VialoApplication"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NaviGo.Starting">
+        android:theme="@style/Theme.Vialo.Starting">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.NaviGo.Starting"
+            android:theme="@style/Theme.Vialo.Starting"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:windowSoftInputMode="adjustResize">
 
@@ -64,7 +64,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="navigo"
+                    android:scheme="vialo"
                     android:host="add" />
             </intent-filter>
 
@@ -77,7 +77,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="navigo-widget.github.io" />
+                    android:host="vialo-widget.github.io" />
             </intent-filter>
         </activity>
 

@@ -3,11 +3,11 @@
 
     <!-- Splash screen theme — shown while the process is starting.
          After installSplashScreen() runs in MainActivity, the OS swaps in
-         postSplashScreenTheme (Theme.NaviGo) to host the Compose content. -->
-    <style name="Theme.NaviGo.Starting" parent="Theme.SplashScreen">
+         postSplashScreenTheme (Theme.Vialo) to host the Compose content. -->
+    <style name="Theme.Vialo.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="postSplashScreenTheme">@style/Theme.NaviGo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Vialo</item>
     </style>
 
     <!-- Main app theme. Compose owns the colours at runtime via MaterialTheme,
@@ -15,7 +15,7 @@
          parent (not Theme.Material3.*) because the Material Components library
          that supplies the XML M3 themes isn't on the classpath — the Compose
          material3 artifact only ships the Composable side. -->
-    <style name="Theme.NaviGo" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.Vialo" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>

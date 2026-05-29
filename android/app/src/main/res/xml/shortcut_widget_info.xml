@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  NaviGo widget metadata.
+  Vialo widget metadata.
 
   Default size on add:
     * Android 12+ uses targetCellWidth / targetCellHeight — set to 5×2 so

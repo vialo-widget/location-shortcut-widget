@@ -49,7 +49,7 @@ jobs:
           tag_name: latest
           name: Latest Build
           body: |
-            Latest NaviGo release APK from main.
+            Latest Vialo release APK from main.
             Install on any modern Android phone (arm64). Shrunk + minified build.
           files: android/app/build/outputs/apk/release/app-release.apk
           prerelease: false
