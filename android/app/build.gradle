@@ -21,6 +21,10 @@ android {
             debugSymbolLevel 'FULL'
         }
         vectorDrawables.useSupportLibrary = true
+
+        // Backend for paired-device sync (carer-caree feature).
+        // Worker source: vialo-widget/vialo-sync.
+        buildConfigField 'String', 'BACKEND_URL', '"https://vialo-sync.vialo-widget.workers.dev"'
     }
 
     compileOptions {
@@ -35,6 +39,7 @@ android {
 
     buildFeatures {
         compose true
+        buildConfig true
     }
 
     sourceSets {
@@ -139,4 +144,8 @@ dependencies {
 
     // Desugaring — needed for java.time on minSdk < 26 (we are 26, but harmless)
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
+    // Encrypted prefs — for the device_id + session_token used by the
+    // paired-device sync backend (carer-caree feature).
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
 }
