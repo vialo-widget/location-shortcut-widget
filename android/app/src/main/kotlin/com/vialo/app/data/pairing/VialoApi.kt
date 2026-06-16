@@ -56,12 +56,12 @@ class VialoApi(
      * session token in [DeviceIdentity] before returning.
      */
     suspend fun registerDevice(fcmToken: String? = null): ApiResult<Unit> {
-        return request {
+        return request<RegisterResponse> {
             http.post("$baseUrl/device/register") {
                 contentType(ContentType.Application.Json)
                 setBody(RegisterRequest(identity.deviceId, fcmToken))
             }
-        }.map<RegisterResponse, Unit> {
+        }.map {
             identity.saveSessionToken(it.sessionToken)
             Unit
         }
@@ -161,13 +161,13 @@ class VialoApi(
     suspend fun inbox(): ApiResult<List<InboundInvite>> =
         request<InboxResponse> {
             http.get("$baseUrl/pair/inbox") { authHeaders() }
-        }.map { it.inbox.map(InboxRow::toDomain) }
+        }.map { resp -> resp.inbox.map { it.toDomain() } }
 
     /** Carer-side: any redemptions of mine awaiting accept. */
     suspend fun pending(): ApiResult<List<OutboundInvite>> =
         request<PendingResponse> {
             http.get("$baseUrl/pair/pending") { authHeaders() }
-        }.map { it.pending.map(PendingRow::toDomain) }
+        }.map { resp -> resp.pending.map { it.toDomain() } }
 
     // ─── Internals ─────────────────────────────────────────────────────────
 
