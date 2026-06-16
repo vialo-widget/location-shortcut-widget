@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "312547231579",
+    "project_id": "vialo-1e271",
+    "storage_bucket": "vialo-1e271.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:312547231579:android:416ddb221595a924173c7e",
+        "android_client_info": {
+          "package_name": "com.vialo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcSB3fJezfqg7mkuS2CWvT0SXSK9iUIAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

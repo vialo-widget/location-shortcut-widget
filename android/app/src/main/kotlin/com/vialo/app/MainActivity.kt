@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.vialo.app.deeplink.DeepLinkBus
+import com.vialo.app.service.messaging.PairingNotifications
 import com.vialo.app.ui.VialoApp
 import java.security.MessageDigest
 
@@ -54,7 +55,25 @@ class MainActivity : ComponentActivity() {
      * custom-scheme form.
      */
     private fun handleIntent(intent: Intent?) {
-        val data = intent?.data ?: return
+        if (intent == null) return
+
+        // Notification taps land here via PendingIntent extras (no Uri). Convert
+        // them to synthetic deep-link URIs so the Compose layer's existing
+        // DeepLinkBus collector can route them uniformly with shared-link
+        // URIs. Only consume the extras once.
+        val navTarget = intent.getStringExtra(PairingNotifications.EXTRA_NAV_TARGET)
+        if (navTarget == PairingNotifications.NAV_ACCEPT_INVITE) {
+            val pendingId = intent.getStringExtra(PairingNotifications.EXTRA_PENDING_ID)
+            if (!pendingId.isNullOrBlank()) {
+                DeepLinkBus.publish(Uri.parse("vialo://pair/accept?pendingId=$pendingId"))
+            }
+            intent.removeExtra(PairingNotifications.EXTRA_NAV_TARGET)
+            intent.removeExtra(PairingNotifications.EXTRA_PENDING_ID)
+            // No early return: the same intent could also carry a Uri (it
+            // won't in practice but defending against future overlap).
+        }
+
+        val data = intent.data ?: return
         val uriStr = data.toString()
 
         val isCustomScheme = uriStr.startsWith("vialo://")

@@ -4,6 +4,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'com.google.devtools.ksp'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -131,6 +132,8 @@ dependencies {
     // kotlinx
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
+    // Lets us `await()` on FirebaseMessaging.getToken() and friends.
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0'
 
     // Phosphor Icons (Compose Multiplatform — resolves to -android variant)
     implementation 'com.adamglin:phosphor-icon:1.0.0'
@@ -148,4 +151,11 @@ dependencies {
     // Encrypted prefs — for the device_id + session_token used by the
     // paired-device sync backend (carer-caree feature).
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // Firebase Cloud Messaging — only used to wake the device for paired-
+    // sync events (pair invite, accept/reject, edits). Payloads carry
+    // event metadata only; the shortcut data itself travels via the
+    // Vialo sync REST API, not via push.
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-messaging-ktx'
 }

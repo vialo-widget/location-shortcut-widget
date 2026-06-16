@@ -58,6 +58,18 @@ fun VialoApp(
                     val navController = rememberNavController()
                     LaunchedEffect(navController) {
                         DeepLinkBus.uris.collect { uri ->
+                            // Pairing notification taps → AcceptInviteScreen.
+                            if (uri.scheme == "vialo" && uri.host == "pair" &&
+                                uri.pathSegments.firstOrNull() == "accept"
+                            ) {
+                                val pendingId = uri.getQueryParameter("pendingId")
+                                if (!pendingId.isNullOrBlank()) {
+                                    navController.navigate(Destinations.acceptInvite(pendingId))
+                                }
+                                return@collect
+                            }
+
+                            // Shared shortcut link → ConfirmAddScreen.
                             val pending = DeepLinkParser.parse(uri) ?: return@collect
                             graph.pendingShortcutHolder.set(pending)
                             navController.navigate(Destinations.CONFIRM_ADD)

@@ -81,6 +81,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Firebase Cloud Messaging — receives paired-sync push events.
+             Only event metadata travels through FCM; shortcut data goes
+             through the Vialo sync REST API. -->
+        <service
+            android:name=".service.messaging.VialoFirebaseService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <!-- Home screen widget receiver -->
         <receiver
             android:name=".ShortcutWidgetProvider"

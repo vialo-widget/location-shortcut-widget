@@ -1,11 +1,15 @@
 package com.vialo.app
 
 import android.app.Application
+import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
 import com.vialo.app.data.Graph
+import com.vialo.app.data.pairing.ApiResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class VialoApplication : Application() {
 
@@ -38,5 +42,28 @@ class VialoApplication : Application() {
                 graph.widgetMirror.mirrorShortcuts(shortcuts)
             }
         }
+
+        // Paired-sync init: fetch the current FCM token and ensure the device
+        // is registered with the backend. Idempotent on every cold start — if
+        // either the token or the registration is already current, this is a
+        // no-op. Failures are non-fatal; pairing UI re-tries on entry anyway.
+        appScope.launch { initPairingSync() }
     }
+
+    private suspend fun initPairingSync() {
+        val identity = graph.deviceIdentity
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+            identity.fcmToken = token
+        } catch (e: Exception) {
+            Log.w(TAG, "FCM token fetch failed; will retry on next launch", e)
+        }
+        when (val result = graph.vialoApi.registerDevice(identity.fcmToken)) {
+            is ApiResult.Success -> Log.i(TAG, "device registered with sync backend")
+            is ApiResult.Failure ->
+                Log.w(TAG, "device register failed: ${result.code} ${result.message}")
+        }
+    }
+
+    private companion object { const val TAG = "VialoApplication" }
 }
