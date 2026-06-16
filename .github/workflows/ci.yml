@@ -25,18 +25,26 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build release APK
+      - name: Build debug + release APKs
         working-directory: android
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleDebug assembleRelease
 
-      - name: Extract APK signing fingerprint
+      - name: Extract release APK signing fingerprint
         run: |
           APK=android/app/build/outputs/apk/release/app-release.apk
           FINGERPRINT=$(keytool -printcert -jarfile "$APK" | grep "SHA256:" | awk '{print $2}')
           echo "APK_FINGERPRINT=$FINGERPRINT" >> "$GITHUB_ENV"
           echo "APK signing SHA-256: $FINGERPRINT"
 
-      - name: Upload APK artifact
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          # Debug APK uses com.vialo.app.debug — installable alongside the
+          # Play Store production build for side-by-side testing.
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
@@ -49,8 +57,12 @@ jobs:
           tag_name: latest
           name: Latest Build
           body: |
-            Latest Vialo release APK from main.
-            Install on any modern Android phone (arm64). Shrunk + minified build.
-          files: android/app/build/outputs/apk/release/app-release.apk
+            Latest Vialo build from main.
+            - app-release.apk  — production-style, com.vialo.app, shrunk + minified
+            - app-debug.apk    — debug-signed, com.vialo.app.debug, installable
+              alongside the Play Store build
+          files: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/apk/debug/app-debug.apk
           prerelease: false
           make_latest: true
