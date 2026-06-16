@@ -57,7 +57,10 @@ import com.vialo.app.ui.LocalGraph
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    onOpenWhoHelpingMe: () -> Unit = {},
+) {
     val context = LocalContext.current
     val graph = LocalGraph.current
     val bridges = LocalActivityBridges.current
@@ -184,6 +187,18 @@ fun SettingsScreen(onBack: () -> Unit) {
                 },
             )
             */
+
+            Spacer(Modifier.height(20.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(20.dp))
+            SectionLabel("People")
+            SettingRow(
+                title = "Who's helping me",
+                subtitle = "Let a family member or friend help manage your places.",
+                action = {
+                    OutlinedButton(onClick = onOpenWhoHelpingMe) { Text("Open") }
+                },
+            )
 
             // Permissions section: shown only when at least one permission is
             // missing. Each row is rendered only for the missing one(s); when

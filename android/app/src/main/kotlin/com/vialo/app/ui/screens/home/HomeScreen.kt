@@ -22,8 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SupervisorAccount
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +67,7 @@ fun HomeScreen(
     onAddShortcut: () -> Unit,
     onOpenSettings: () -> Unit,
     onEditShortcut: (String) -> Unit,
+    onOpenCarerMode: () -> Unit = {},
 ) {
     val graph = LocalGraph.current
     val vm: HomeViewModel = viewModel(
@@ -95,11 +99,25 @@ fun HomeScreen(
                 ),
             )
         },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onAddShortcut,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Add shortcut") },
+        bottomBar = {
+            BottomAppBar(
+                containerColor = Color.Transparent,
+                actions = {
+                    IconButton(onClick = onOpenCarerMode) {
+                        Icon(
+                            Icons.Outlined.SupervisorAccount,
+                            contentDescription = "Helping",
+                        )
+                    }
+                },
+                floatingActionButton = {
+                    ExtendedFloatingActionButton(
+                        onClick = onAddShortcut,
+                        icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                        text = { Text("Add shortcut") },
+                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+                    )
+                },
             )
         },
     ) { padding ->
