@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,12 +49,15 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adamglin.PhosphorIcons
 import com.adamglin.phosphoricons.Duotone
 import com.adamglin.phosphoricons.duotone.Bell
 import com.adamglin.phosphoricons.duotone.CheckCircle
 import com.adamglin.phosphoricons.duotone.MapPin
 import com.adamglin.phosphoricons.duotone.SquaresFour
+import com.adamglin.phosphoricons.duotone.User
+import com.adamglin.phosphoricons.duotone.UsersThree
 import com.vialo.app.ui.LocalActivityBridges
 import com.vialo.app.ui.LocalGraph
 import kotlinx.coroutines.launch
@@ -85,6 +89,11 @@ fun OnboardingScreen(onDone: () -> Unit) {
     }
     var locationGranted by remember { mutableStateOf(isLocationGranted(context)) }
     var widgetPinned by remember { mutableStateOf(bridges.isWidgetPinned()) }
+
+    val careeModeEnabled by graph.appSettings.careeModeEnabled
+        .collectAsStateWithLifecycle(initialValue = false)
+    val carerModeEnabled by graph.appSettings.carerModeEnabled
+        .collectAsStateWithLifecycle(initialValue = false)
 
     // Re-check on resume so granting via the system dialog or adding the
     // widget via the launcher's widget picker updates the UI when we come
@@ -137,9 +146,31 @@ fun OnboardingScreen(onDone: () -> Unit) {
             Spacer(Modifier.height(8.dp))
             Text(
                 "A few quick steps to get the most out of the app. You can " +
-                    "skip any of these and grant them later from Settings.",
+                    "skip any of these and change them later from Settings.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(24.dp))
+
+            SectionLabel("How will you use Vialo?")
+            OnboardingToggleStep(
+                icon = PhosphorIcons.Duotone.User,
+                title = "Caree mode",
+                description = "I want help managing my places. Adds a Caree tab on Home.",
+                checked = careeModeEnabled,
+                onCheckedChange = { enabled ->
+                    scope.launch { graph.appSettings.setCareeModeEnabled(enabled) }
+                },
+            )
+            Spacer(Modifier.height(12.dp))
+            OnboardingToggleStep(
+                icon = PhosphorIcons.Duotone.UsersThree,
+                title = "Carer mode",
+                description = "I want to help someone manage their places. Adds a Carer tab on Home.",
+                checked = carerModeEnabled,
+                onCheckedChange = { enabled ->
+                    scope.launch { graph.appSettings.setCarerModeEnabled(enabled) }
+                },
             )
             Spacer(Modifier.height(24.dp))
 
@@ -257,6 +288,63 @@ private fun OnboardingStep(
             } else {
                 OutlinedButton(onClick = onAction) { Text(actionLabel) }
             }
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+    )
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun OnboardingToggleStep(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f, fill = true)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(4.dp))
+            Switch(checked = checked, onCheckedChange = onCheckedChange)
         }
     }
 }

@@ -18,9 +18,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material3.BottomAppBar
@@ -33,18 +37,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,6 +71,15 @@ import com.vialo.app.data.model.expiryBadgeText
 import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.icons.ShortcutIcon
 import com.vialo.app.ui.icons.ShortcutIconCatalog
+import com.vialo.app.ui.pairing.CareePanel
+import com.vialo.app.ui.pairing.CarerPanel
+import kotlinx.coroutines.launch
+
+private enum class HomeTab(val title: String, val icon: ImageVector) {
+    MyLocations("My locations", Icons.Outlined.Place),
+    Caree("Caree", Icons.Outlined.Favorite),
+    Carer("Carer", Icons.Outlined.SupervisorAccount),
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -67,7 +87,8 @@ fun HomeScreen(
     onAddShortcut: () -> Unit,
     onOpenSettings: () -> Unit,
     onEditShortcut: (String) -> Unit,
-    onOpenCarerMode: () -> Unit = {},
+    onAddHelper: () -> Unit = {},
+    onAddCaree: () -> Unit = {},
 ) {
     val graph = LocalGraph.current
     val vm: HomeViewModel = viewModel(
@@ -78,78 +99,88 @@ fun HomeScreen(
 
     var actionTarget by remember { mutableStateOf<Shortcut?>(null) }
 
+    val tabs = remember(state.careeModeEnabled, state.carerModeEnabled) {
+        buildList {
+            add(HomeTab.MyLocations)
+            if (state.careeModeEnabled) add(HomeTab.Caree)
+            if (state.carerModeEnabled) add(HomeTab.Carer)
+        }
+    }
+
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val scope = rememberCoroutineScope()
+
+    // When the tab list shrinks because a mode toggled off, keep the pager
+    // pinned to a valid index instead of leaving it past the end.
+    LaunchedEffect(tabs.size) {
+        if (pagerState.currentPage >= tabs.size) {
+            pagerState.scrollToPage(tabs.size - 1)
+        }
+    }
+
+    val currentTab = tabs.getOrNull(pagerState.currentPage) ?: HomeTab.MyLocations
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Vialo",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                actions = {
-                    IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-            )
-        },
-        bottomBar = {
-            BottomAppBar(
-                containerColor = Color.Transparent,
-                actions = {
-                    IconButton(onClick = onOpenCarerMode) {
-                        Icon(
-                            Icons.Outlined.SupervisorAccount,
-                            contentDescription = "Helping",
+            Column {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Vialo",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
                         )
-                    }
-                },
-                floatingActionButton = {
-                    ExtendedFloatingActionButton(
-                        onClick = onAddShortcut,
-                        icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                        text = { Text("Add shortcut") },
-                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-                    )
-                },
-            )
-        },
-    ) { padding ->
-        when {
-            state.isLoading -> Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    "Loading…",
-                    color = MaterialTheme.colorScheme.onSurface,
+                    },
+                    actions = {
+                        IconButton(onClick = onOpenSettings) {
+                            Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                    ),
                 )
-            }
-
-            state.shortcuts.isEmpty() -> EmptyHomeState(
-                modifier = Modifier.fillMaxSize().padding(padding),
-            )
-
-            else -> LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(state.shortcuts, key = { it.id }) { shortcut ->
-                    ShortcutTile(
-                        shortcut = shortcut,
-                        onTap = { vm.launchNavigation(context, shortcut) },
-                        onLongPress = { actionTarget = shortcut },
+                if (tabs.size > 1) {
+                    HomeTabRow(
+                        tabs = tabs,
+                        selectedIndex = pagerState.currentPage,
+                        onTabSelected = { index ->
+                            scope.launch { pagerState.animateScrollToPage(index) }
+                        },
                     )
                 }
+            }
+        },
+        bottomBar = {
+            if (currentTab == HomeTab.MyLocations) {
+                BottomAppBar(
+                    containerColor = Color.Transparent,
+                    actions = {},
+                    floatingActionButton = {
+                        ExtendedFloatingActionButton(
+                            onClick = onAddShortcut,
+                            icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                            text = { Text("Add shortcut") },
+                            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+                        )
+                    },
+                )
+            }
+        },
+    ) { padding ->
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize().padding(padding),
+        ) { page ->
+            when (tabs[page]) {
+                HomeTab.MyLocations -> MyLocationsTab(
+                    state = state,
+                    onTap = { vm.launchNavigation(context, it) },
+                    onLongPress = { actionTarget = it },
+                )
+                HomeTab.Caree -> CareePanel(onAddHelper = onAddHelper)
+                HomeTab.Carer -> CarerPanel(onAddCaree = onAddCaree)
             }
         }
     }
@@ -163,6 +194,88 @@ fun HomeScreen(
             onEdit = { actionTarget = null; onEditShortcut(target.id) },
             onDelete = { vm.delete(target); actionTarget = null },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeTabRow(
+    tabs: List<HomeTab>,
+    selectedIndex: Int,
+    onTabSelected: (Int) -> Unit,
+) {
+    val safeIndex = selectedIndex.coerceIn(0, tabs.lastIndex)
+    // Material 3 TabRow uses colorScheme.primary for the selected tint and
+    // onSurfaceVariant for the rest — both adapt to light/dark automatically.
+    TabRow(
+        selectedTabIndex = safeIndex,
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.primary,
+        indicator = { positions ->
+            if (safeIndex < positions.size) {
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(positions[safeIndex]),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        },
+    ) {
+        tabs.forEachIndexed { index, tab ->
+            val selected = index == safeIndex
+            Tab(
+                selected = selected,
+                onClick = { onTabSelected(index) },
+                selectedContentColor = MaterialTheme.colorScheme.primary,
+                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                icon = {
+                    Icon(
+                        imageVector = tab.icon,
+                        contentDescription = tab.title,
+                    )
+                },
+                text = {
+                    Text(
+                        tab.title,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun MyLocationsTab(
+    state: HomeUiState,
+    onTap: (Shortcut) -> Unit,
+    onLongPress: (Shortcut) -> Unit,
+) {
+    when {
+        state.isLoading -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("Loading…", color = MaterialTheme.colorScheme.onSurface)
+        }
+
+        state.shortcuts.isEmpty() -> EmptyHomeState(modifier = Modifier.fillMaxSize())
+
+        else -> LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(state.shortcuts, key = { it.id }) { shortcut ->
+                ShortcutTile(
+                    shortcut = shortcut,
+                    onTap = { onTap(shortcut) },
+                    onLongPress = { onLongPress(shortcut) },
+                )
+            }
+        }
     }
 }
 

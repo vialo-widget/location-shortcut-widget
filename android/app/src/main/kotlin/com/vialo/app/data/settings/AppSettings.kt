@@ -40,9 +40,29 @@ class AppSettings(private val context: Context) {
         store.edit { it[Keys.HasSeenOnboarding] = true }
     }
 
+    /** Whether the user has enabled "Caree mode" — the side that *receives*
+     *  help. Surfaces the Caree tab on the Home screen when on. */
+    val careeModeEnabled: Flow<Boolean> =
+        store.data.map { it[Keys.CareeModeEnabled] ?: false }
+
+    suspend fun setCareeModeEnabled(enabled: Boolean) {
+        store.edit { it[Keys.CareeModeEnabled] = enabled }
+    }
+
+    /** Whether the user has enabled "Carer mode" — the side that *gives*
+     *  help. Surfaces the Carer tab on the Home screen when on. */
+    val carerModeEnabled: Flow<Boolean> =
+        store.data.map { it[Keys.CarerModeEnabled] ?: false }
+
+    suspend fun setCarerModeEnabled(enabled: Boolean) {
+        store.edit { it[Keys.CarerModeEnabled] = enabled }
+    }
+
     private object Keys {
         val ImportedFromWidgetPrefs = booleanPreferencesKey("imported_from_widget_prefs")
         val HasSeenOnboarding = booleanPreferencesKey("has_seen_onboarding")
+        val CareeModeEnabled = booleanPreferencesKey("caree_mode_enabled")
+        val CarerModeEnabled = booleanPreferencesKey("carer_mode_enabled")
     }
 
     private companion object {

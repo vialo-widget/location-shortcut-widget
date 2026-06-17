@@ -32,6 +32,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -59,7 +60,6 @@ import com.vialo.app.ui.LocalGraph
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    onOpenWhoHelpingMe: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val graph = LocalGraph.current
@@ -193,10 +193,23 @@ fun SettingsScreen(
             Spacer(Modifier.height(20.dp))
             SectionLabel("People")
             SettingRow(
-                title = "Who's helping me",
-                subtitle = "Let a family member or friend help manage your places.",
+                title = "Caree mode",
+                subtitle = "I want help managing my places. Adds a Caree tab on Home.",
                 action = {
-                    OutlinedButton(onClick = onOpenWhoHelpingMe) { Text("Open") }
+                    Switch(
+                        checked = state.careeModeEnabled,
+                        onCheckedChange = vm::setCareeModeEnabled,
+                    )
+                },
+            )
+            SettingRow(
+                title = "Carer mode",
+                subtitle = "I want to help someone manage their places. Adds a Carer tab on Home.",
+                action = {
+                    Switch(
+                        checked = state.carerModeEnabled,
+                        onCheckedChange = vm::setCarerModeEnabled,
+                    )
                 },
             )
 
