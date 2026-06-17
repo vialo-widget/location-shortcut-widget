@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -190,6 +191,19 @@ fun GenerateCodeScreen(onBack: () -> Unit) {
                         Icon(Icons.Outlined.Share, contentDescription = null)
                         Text("  Send")
                     }
+                }
+                Spacer(Modifier.height(8.dp))
+                // Server-side /pair/code invalidates the previous code, so
+                // tapping this any time within the 10-minute window mints a
+                // fresh one — useful if the old code was read incorrectly
+                // or the helper needs more time.
+                TextButton(
+                    onClick = { vm.generateCode() },
+                    enabled = status !is PairingViewModel.Status.Working,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Outlined.Refresh, contentDescription = null)
+                    Text("  Generate a new code")
                 }
             }
         }
