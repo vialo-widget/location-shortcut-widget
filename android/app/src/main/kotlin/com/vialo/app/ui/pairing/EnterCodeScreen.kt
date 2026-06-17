@@ -102,8 +102,8 @@ fun EnterCodeScreen(
         ) {
             Spacer(Modifier.height(12.dp))
             Text(
-                "Ask them to open Vialo → Settings → Who's helping me → " +
-                    "Add a helper, and read you the 6-digit code.",
+                "Ask them to open Vialo, switch to the Caree tab, tap " +
+                    "\"Add a helper\", and read you the 6-digit code.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

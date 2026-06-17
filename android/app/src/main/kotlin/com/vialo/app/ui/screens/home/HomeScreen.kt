@@ -88,6 +88,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onEditShortcut: (String) -> Unit,
     onAddHelper: () -> Unit = {},
+    onOpenInvite: (String) -> Unit = {},
     onAddCaree: () -> Unit = {},
 ) {
     val graph = LocalGraph.current
@@ -179,7 +180,10 @@ fun HomeScreen(
                     onTap = { vm.launchNavigation(context, it) },
                     onLongPress = { actionTarget = it },
                 )
-                HomeTab.Caree -> CareePanel(onAddHelper = onAddHelper)
+                HomeTab.Caree -> CareePanel(
+                    onAddHelper = onAddHelper,
+                    onOpenInvite = onOpenInvite,
+                )
                 HomeTab.Carer -> CarerPanel(onAddCaree = onAddCaree)
             }
         }

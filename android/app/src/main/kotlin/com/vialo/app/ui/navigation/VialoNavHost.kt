@@ -41,6 +41,9 @@ fun VialoNavHost(
                 onOpenSettings = { navController.navigate(Destinations.SETTINGS) },
                 onEditShortcut = { id -> navController.navigate(Destinations.edit(id)) },
                 onAddHelper = { navController.navigate(Destinations.GENERATE_CODE) },
+                onOpenInvite = { pendingId ->
+                    navController.navigate(Destinations.acceptInvite(pendingId))
+                },
                 onAddCaree = { navController.navigate(Destinations.ENTER_CODE) },
             )
         }

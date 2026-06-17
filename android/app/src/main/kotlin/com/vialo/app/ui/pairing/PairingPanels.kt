@@ -1,5 +1,6 @@
 package com.vialo.app.ui.pairing
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -36,21 +39,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.vialo.app.data.pairing.InboundInvite
 import com.vialo.app.data.pairing.Pair
 import com.vialo.app.ui.LocalGraph
 
 /**
- * Caree tab body — shows the helpers currently paired with this device and
- * an "Add a helper" CTA. Mirrors the standalone "Who's helping me" screen
- * minus the Scaffold/topbar, since it lives inside a Home tab.
+ * Caree tab body — shows any pending invites the server has on file, the
+ * helpers already paired, and an "Add a helper" CTA.
+ *
+ * Surfacing inbox entries here matters: it's the fallback when the FCM
+ * push for a fresh invite is delayed or suppressed (battery saver, etc).
+ * Without it the caree would never see a pending request unless the OS
+ * notification fired.
  */
 @Composable
 fun CareePanel(
     onAddHelper: () -> Unit,
+    onOpenInvite: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val graph = LocalGraph.current
@@ -61,6 +72,12 @@ fun CareePanel(
     val status by vm.status.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     var confirmRemove by remember { mutableStateOf<Pair?>(null) }
+
+    // Pull fresh inbox/pairs every time the user comes back to this tab so
+    // a missed FCM push doesn't permanently hide a pending invite.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        vm.refresh()
+    }
 
     LaunchedEffect(status) {
         when (val s = status) {
@@ -83,7 +100,7 @@ fun CareePanel(
                 .padding(horizontal = 20.dp),
         ) {
             Spacer(Modifier.height(8.dp))
-            if (state.asCaree.isEmpty()) {
+            if (state.inbox.isEmpty() && state.asCaree.isEmpty()) {
                 EmptyCareeBlurb(modifier = Modifier.weight(1f))
             } else {
                 LazyColumn(
@@ -91,11 +108,27 @@ fun CareePanel(
                     contentPadding = PaddingValues(vertical = 16.dp),
                     modifier = Modifier.weight(1f),
                 ) {
-                    items(state.asCaree, key = { it.id }) { pair ->
-                        HelperRow(
-                            pair = pair,
-                            onRemoveClick = { confirmRemove = pair },
-                        )
+                    if (state.inbox.isNotEmpty()) {
+                        item(key = "inbox-header") {
+                            SectionLabel("Pending requests")
+                        }
+                        items(state.inbox, key = { "inbox-${it.pendingId}" }) { invite ->
+                            PendingInviteRow(
+                                invite = invite,
+                                onTap = { onOpenInvite(invite.pendingId) },
+                            )
+                        }
+                    }
+                    if (state.asCaree.isNotEmpty()) {
+                        item(key = "helpers-header") {
+                            SectionLabel("Your helpers")
+                        }
+                        items(state.asCaree, key = { "helper-${it.id}" }) { pair ->
+                            HelperRow(
+                                pair = pair,
+                                onRemoveClick = { confirmRemove = pair },
+                            )
+                        }
                     }
                 }
             }
@@ -154,6 +187,10 @@ fun CarerPanel(
     )
     val state by vm.state.collectAsStateWithLifecycle()
 
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        vm.refresh()
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -205,6 +242,59 @@ fun CarerPanel(
             Text("Help someone", style = MaterialTheme.typography.titleMedium)
         }
         Spacer(Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun PendingInviteRow(
+    invite: InboundInvite,
+    onTap: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onTap),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                Icons.Outlined.PersonAdd,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(28.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "${invite.carerDisplayName} wants to help",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    "Tap to accept or reject",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
     }
 }
 
