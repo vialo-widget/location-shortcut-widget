@@ -96,6 +96,49 @@ internal data class PendingRow(
 internal data class ErrorResponse(val error: String)
 
 // ───────────────────────────────────────────────────────────────────────────
+// Phase 2 — Shortcut sync wire shapes.
+// RemoteShortcut mirrors the local Shortcut model field-for-field so the
+// backend can store the snapshot opaquely and both peers decode identically.
+// We pass timestamps as epoch-millis (matches the Room columns) rather
+// than ISO strings to avoid two encoding hops.
+// ───────────────────────────────────────────────────────────────────────────
+
+@Serializable
+data class RemoteShortcut(
+    val id: String,
+    val label: String,
+    val address: String,
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("place_id") val placeId: String,
+    @SerialName("icon_name") val iconName: String,
+    @SerialName("sort_order") val sortOrder: Int,
+    @SerialName("created_at_millis") val createdAtMillis: Long,
+    @SerialName("expires_at_millis") val expiresAtMillis: Long? = null,
+)
+
+@Serializable
+internal data class CareeStateRequest(val shortcuts: List<RemoteShortcut>)
+
+@Serializable
+internal data class CareeStateResponse(
+    val shortcuts: List<RemoteShortcut> = emptyList(),
+    @SerialName("updated_at") val updatedAt: Long = 0L,
+)
+
+@Serializable
+internal data class CareeStateAck(
+    val ok: Boolean = true,
+    @SerialName("updated_at") val updatedAt: Long = 0L,
+)
+
+/** Domain shape returned to callers of [VialoApi.getCareeState]. */
+data class CareeStateSnapshot(
+    val shortcuts: List<RemoteShortcut>,
+    val updatedAt: Long,
+)
+
+// ───────────────────────────────────────────────────────────────────────────
 // Domain models — what callers (repository, viewmodels, UI) see.
 // Independent of wire format so the API can evolve without ripple.
 // ───────────────────────────────────────────────────────────────────────────

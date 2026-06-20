@@ -1,5 +1,6 @@
 package com.vialo.app.data.model
 
+import com.vialo.app.data.pairing.RemoteShortcut
 import java.time.Instant
 import java.util.UUID
 
@@ -25,3 +26,29 @@ data class Shortcut(
         fun newId(): String = UUID.randomUUID().toString()
     }
 }
+
+fun Shortcut.toRemote(): RemoteShortcut = RemoteShortcut(
+    id = id,
+    label = label,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    placeId = placeId,
+    iconName = iconName,
+    sortOrder = sortOrder,
+    createdAtMillis = createdAt.toEpochMilli(),
+    expiresAtMillis = expiresAt?.toEpochMilli(),
+)
+
+fun RemoteShortcut.toDomain(): Shortcut = Shortcut(
+    id = id,
+    label = label,
+    address = address,
+    latitude = latitude,
+    longitude = longitude,
+    placeId = placeId,
+    iconName = iconName,
+    sortOrder = sortOrder,
+    createdAt = Instant.ofEpochMilli(createdAtMillis),
+    expiresAt = expiresAtMillis?.let(Instant::ofEpochMilli),
+)

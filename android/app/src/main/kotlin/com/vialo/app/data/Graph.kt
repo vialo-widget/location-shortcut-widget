@@ -8,6 +8,7 @@ import com.vialo.app.data.pairing.PairingRepository
 import com.vialo.app.data.pairing.VialoApi
 import com.vialo.app.data.repo.ShortcutRepository
 import com.vialo.app.data.settings.AppSettings
+import com.vialo.app.data.sync.CareeStateSyncer
 import com.vialo.app.service.location.LocationService
 import com.vialo.app.service.notification.ExpiryNotifier
 import com.vialo.app.service.search.NominatimClient
@@ -53,5 +54,12 @@ class Graph(context: Context) {
     }
     val pairingRepository: PairingRepository by lazy {
         PairingRepository(vialoApi, deviceIdentity, pairingScope)
+    }
+
+    /** Mirrors the local shortcut list to the backend whenever this device
+     *  has at least one paired carer. Wired to start once at app cold-start
+     *  by [com.vialo.app.VialoApplication]. */
+    val careeStateSyncer: CareeStateSyncer by lazy {
+        CareeStateSyncer(pairingRepository, shortcutRepository, vialoApi, pairingScope)
     }
 }

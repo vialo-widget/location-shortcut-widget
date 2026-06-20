@@ -48,6 +48,11 @@ class VialoApplication : Application() {
         // either the token or the registration is already current, this is a
         // no-op. Failures are non-fatal; pairing UI re-tries on entry anyway.
         appScope.launch { initPairingSync() }
+
+        // Start mirroring this device's shortcuts to the backend when at
+        // least one carer is paired. Lazy-by-design: with no carers no
+        // network calls fire.
+        graph.careeStateSyncer.start()
     }
 
     private suspend fun initPairingSync() {

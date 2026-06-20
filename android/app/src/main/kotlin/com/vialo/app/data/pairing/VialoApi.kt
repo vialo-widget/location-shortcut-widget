@@ -169,6 +169,40 @@ class VialoApi(
             http.get("$baseUrl/pair/pending") { authHeaders() }
         }.map { resp -> resp.pending.map { it.toDomain() } }
 
+    // ─── Phase 2 — Shortcut sync ───────────────────────────────────────────
+
+    /** Caree: replace own snapshot. Server fans out `shortcut_changed`
+     *  to every paired carer so their UI re-fetches. */
+    suspend fun pushMyShortcuts(shortcuts: List<RemoteShortcut>): ApiResult<Long> =
+        request<CareeStateAck> {
+            http.post("$baseUrl/caree/state") {
+                authHeaders()
+                contentType(ContentType.Application.Json)
+                setBody(CareeStateRequest(shortcuts))
+            }
+        }.map { it.updatedAt }
+
+    /** Carer (or self): fetch a paired caree's current snapshot. */
+    suspend fun getCareeState(careeDeviceId: String): ApiResult<CareeStateSnapshot> =
+        request<CareeStateResponse> {
+            http.get("$baseUrl/caree/$careeDeviceId/state") { authHeaders() }
+        }.map { CareeStateSnapshot(it.shortcuts, it.updatedAt) }
+
+    /** Carer: replace a paired caree's snapshot. Server fans out
+     *  `shortcut_changed` to caree + other carers; the editing carer is
+     *  expected to update their own UI optimistically and skip the push. */
+    suspend fun pushCareeShortcuts(
+        careeDeviceId: String,
+        shortcuts: List<RemoteShortcut>,
+    ): ApiResult<Long> =
+        request<CareeStateAck> {
+            http.patch("$baseUrl/caree/$careeDeviceId/state") {
+                authHeaders()
+                contentType(ContentType.Application.Json)
+                setBody(CareeStateRequest(shortcuts))
+            }
+        }.map { it.updatedAt }
+
     // ─── Internals ─────────────────────────────────────────────────────────
 
     /** A typed wrapper for endpoints that return non-empty JSON. */
