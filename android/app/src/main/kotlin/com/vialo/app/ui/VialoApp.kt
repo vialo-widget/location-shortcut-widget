@@ -1,11 +1,17 @@
 package com.vialo.app.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vialo.app.data.Graph
 import com.vialo.app.deeplink.DeepLinkBus
@@ -13,6 +19,7 @@ import com.vialo.app.service.deeplink.DeepLinkParser
 import com.vialo.app.ui.components.VialoBackground
 import com.vialo.app.ui.navigation.Destinations
 import com.vialo.app.ui.navigation.VialoNavHost
+import com.vialo.app.ui.pairing.PairingInviteOverlay
 import com.vialo.app.ui.theme.VialoTheme
 
 /**
@@ -75,10 +82,32 @@ fun VialoApp(
                             navController.navigate(Destinations.CONFIRM_ADD)
                         }
                     }
-                    VialoNavHost(
-                        startDestination = if (seen) Destinations.HOME else Destinations.ONBOARDING,
-                        navController = navController,
-                    )
+
+                    // In-memory only — "Skip for now" hides the overlay for
+                    // the current process; the next cold start resurfaces
+                    // any still-pending invites.
+                    var skipped by remember { mutableStateOf<Set<String>>(emptySet()) }
+                    val currentEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = currentEntry?.destination?.route
+                    // Don't interrupt the welcome flow, and don't double up
+                    // with the dedicated AcceptInviteScreen reached via FCM
+                    // tap — that screen already shows the same prompt.
+                    val overlayAllowed = seen &&
+                        currentRoute != Destinations.ONBOARDING &&
+                        currentRoute != Destinations.ACCEPT_INVITE_ROUTE
+
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        VialoNavHost(
+                            startDestination = if (seen) Destinations.HOME else Destinations.ONBOARDING,
+                            navController = navController,
+                        )
+                        if (overlayAllowed) {
+                            PairingInviteOverlay(
+                                skippedPendingIds = skipped,
+                                onSkip = { pendingId -> skipped = skipped + pendingId },
+                            )
+                        }
+                    }
                 }
             }
         }
