@@ -11,6 +11,7 @@ import com.vialo.app.ui.pairing.AcceptInviteScreen
 import com.vialo.app.ui.pairing.EnterCodeScreen
 import com.vialo.app.ui.pairing.GenerateCodeScreen
 import com.vialo.app.ui.screens.add.AddShortcutScreen
+import com.vialo.app.ui.screens.carer.HelpingCareeScreen
 import com.vialo.app.ui.screens.confirm.ConfirmAddScreen
 import com.vialo.app.ui.screens.edit.EditShortcutScreen
 import com.vialo.app.ui.screens.home.HomeScreen
@@ -45,6 +46,9 @@ fun VialoNavHost(
                     navController.navigate(Destinations.acceptInvite(pendingId))
                 },
                 onAddCaree = { navController.navigate(Destinations.ENTER_CODE) },
+                onOpenCaree = { careeDeviceId ->
+                    navController.navigate(Destinations.helpingCaree(careeDeviceId))
+                },
             )
         }
         composable(Destinations.ADD) {
@@ -91,6 +95,16 @@ fun VialoNavHost(
             EnterCodeScreen(
                 onBack = { navController.popBackStack() },
                 onDone = { navController.popBackStack() },
+            )
+        }
+        composable(
+            Destinations.HELPING_CAREE_ROUTE,
+            arguments = listOf(navArgument("careeDeviceId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("careeDeviceId").orEmpty()
+            HelpingCareeScreen(
+                careeDeviceId = id,
+                onBack = { navController.popBackStack() },
             )
         }
     }

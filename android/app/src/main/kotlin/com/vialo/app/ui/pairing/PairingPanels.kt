@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.AlertDialog
@@ -179,6 +180,7 @@ fun CareePanel(
 @Composable
 fun CarerPanel(
     onAddCaree: () -> Unit,
+    onOpenCaree: (careeDeviceId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val graph = LocalGraph.current
@@ -220,16 +222,18 @@ fun CarerPanel(
                     (if (state.asCarer.size == 1) "person" else "people"),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start,
             )
             Spacer(Modifier.height(12.dp))
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(state.asCarer, key = { it.id }) { p ->
-                    Text(
-                        "• ${p.otherDisplayName}",
-                        style = MaterialTheme.typography.bodyLarge,
+                    CareeRow(
+                        displayName = p.otherDisplayName,
+                        onTap = { onOpenCaree(p.otherDeviceId) },
                     )
                 }
             }
@@ -294,6 +298,46 @@ private fun PendingInviteRow(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun CareeRow(
+    displayName: String,
+    onTap: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onTap),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    "Tap to see and manage their places",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

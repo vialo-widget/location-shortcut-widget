@@ -24,4 +24,8 @@ object Destinations {
 
     /** Carer redeems a code + types display names. */
     const val ENTER_CODE = "enter_code"
+
+    /** Carer opens a per-caree screen showing that caree's shortcuts. */
+    const val HELPING_CAREE_ROUTE = "helping/{careeDeviceId}"
+    fun helpingCaree(careeDeviceId: String) = "helping/$careeDeviceId"
 }
