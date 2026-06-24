@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,15 +17,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SupervisorAccount
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -107,8 +106,6 @@ fun HomeScreen(
         }
     }
 
-    val currentTab = tabs.getOrNull(pagerState.currentPage) ?: HomeTab.MyLocations
-
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -141,22 +138,6 @@ fun HomeScreen(
                 }
             }
         },
-        bottomBar = {
-            if (currentTab == HomeTab.MyLocations) {
-                BottomAppBar(
-                    containerColor = Color.Transparent,
-                    actions = {},
-                    floatingActionButton = {
-                        ExtendedFloatingActionButton(
-                            onClick = onAddShortcut,
-                            icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                            text = { Text("Add shortcut") },
-                            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-                        )
-                    },
-                )
-            }
-        },
     ) { padding ->
         HorizontalPager(
             state = pagerState,
@@ -167,6 +148,7 @@ fun HomeScreen(
                     state = state,
                     onTap = { vm.launchNavigation(context, it) },
                     onLongPress = { actionTarget = it },
+                    onAddShortcut = onAddShortcut,
                 )
                 HomeTab.Caree -> CareePanel(
                     onAddHelper = onAddHelper,
@@ -245,32 +227,52 @@ private fun MyLocationsTab(
     state: HomeUiState,
     onTap: (Shortcut) -> Unit,
     onLongPress: (Shortcut) -> Unit,
+    onAddShortcut: () -> Unit,
 ) {
-    when {
-        state.isLoading -> Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("Loading…", color = MaterialTheme.colorScheme.onSurface)
-        }
+    // Stack: grid (or loading / empty state) fills the remaining space,
+    // followed by a bottom-aligned "Add shortcut" button that visually
+    // matches "Add a helper" and "Help someone" on the other tabs.
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+    ) {
+        when {
+            state.isLoading -> Box(
+                modifier = Modifier.weight(1f).fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("Loading…", color = MaterialTheme.colorScheme.onSurface)
+            }
 
-        state.shortcuts.isEmpty() -> EmptyHomeState(modifier = Modifier.fillMaxSize())
+            state.shortcuts.isEmpty() -> EmptyHomeState(
+                modifier = Modifier.weight(1f).fillMaxSize(),
+            )
 
-        else -> LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(state.shortcuts, key = { it.id }) { shortcut ->
-                ShortcutTile(
-                    shortcut = shortcut,
-                    onTap = { onTap(shortcut) },
-                    onLongPress = { onLongPress(shortcut) },
-                )
+            else -> LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.weight(1f).fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(state.shortcuts, key = { it.id }) { shortcut ->
+                    ShortcutTile(
+                        shortcut = shortcut,
+                        onTap = { onTap(shortcut) },
+                        onLongPress = { onLongPress(shortcut) },
+                    )
+                }
             }
         }
+        Spacer(Modifier.height(12.dp))
+        Button(
+            onClick = onAddShortcut,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Add shortcut", style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(Modifier.height(20.dp))
     }
 }
 

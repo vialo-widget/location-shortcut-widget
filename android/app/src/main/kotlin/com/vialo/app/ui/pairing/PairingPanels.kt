@@ -197,10 +197,50 @@ fun CarerPanel(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
         if (state.asCarer.isEmpty()) {
+            EmptyCarerBlurb(modifier = Modifier.weight(1f))
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item(key = "carees-header") {
+                    SectionLabel(
+                        "You're helping ${state.asCarer.size} " +
+                            (if (state.asCarer.size == 1) "person" else "people"),
+                    )
+                }
+                items(state.asCarer, key = { it.id }) { p ->
+                    CareeRow(
+                        displayName = p.otherDisplayName,
+                        onTap = { onOpenCaree(p.otherDeviceId) },
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Button(
+            onClick = onAddCaree,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Help someone", style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(Modifier.height(20.dp))
+    }
+}
+
+@Composable
+private fun EmptyCarerBlurb(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 36.dp, bottom = 16.dp),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 "You're not helping anyone yet",
                 style = MaterialTheme.typography.titleMedium,
@@ -216,36 +256,7 @@ fun CarerPanel(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
-        } else {
-            Text(
-                "You're helping ${state.asCarer.size} " +
-                    (if (state.asCarer.size == 1) "person" else "people"),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start,
-            )
-            Spacer(Modifier.height(12.dp))
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(state.asCarer, key = { it.id }) { p ->
-                    CareeRow(
-                        displayName = p.otherDisplayName,
-                        onTap = { onOpenCaree(p.otherDeviceId) },
-                    )
-                }
-            }
         }
-        Spacer(Modifier.weight(1f))
-        Button(
-            onClick = onAddCaree,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Help someone", style = MaterialTheme.typography.titleMedium)
-        }
-        Spacer(Modifier.height(20.dp))
     }
 }
 
