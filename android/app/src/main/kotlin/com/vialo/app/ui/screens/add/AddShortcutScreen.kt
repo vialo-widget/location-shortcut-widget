@@ -45,10 +45,21 @@ import com.vialo.app.ui.components.SaveBlockerDialog
 fun AddShortcutScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    /** When non-null, the carer is adding on this caree's behalf — writes
+     *  go through a [RemoteShortcutStore] backed by the sync backend
+     *  instead of the local DB. */
+    careeDeviceId: String? = null,
 ) {
     val graph = LocalGraph.current
+    val store = androidx.compose.runtime.remember(careeDeviceId) {
+        if (careeDeviceId == null) {
+            com.vialo.app.data.repo.LocalShortcutStore(graph.shortcutRepository, graph.expiryNotifier)
+        } else {
+            com.vialo.app.data.repo.RemoteShortcutStore(graph.vialoApi, careeDeviceId)
+        }
+    }
     val vm: AddShortcutViewModel = viewModel(
-        factory = viewModelFactory { initializer { AddShortcutViewModel(graph) } },
+        factory = viewModelFactory { initializer { AddShortcutViewModel(graph, store) } },
     )
     val state by vm.state.collectAsStateWithLifecycle()
 

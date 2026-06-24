@@ -6,6 +6,8 @@ import com.vialo.app.data.Graph
 import com.vialo.app.data.model.Shortcut
 import com.vialo.app.data.model.toDomain
 import com.vialo.app.data.pairing.ApiResult
+import com.vialo.app.data.repo.RemoteShortcutStore
+import com.vialo.app.data.repo.RemoteStoreException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +39,10 @@ class HelpingCareeViewModel(
     private val _ui = MutableStateFlow(HelpingCareeUiState())
     val uiState: StateFlow<HelpingCareeUiState> = _ui.asStateFlow()
 
+    /** Single store instance reused across mutations so the in-memory cache
+     *  stays warm between actions (delete → next delete doesn't re-fetch). */
+    private val store = RemoteShortcutStore(graph.vialoApi, careeDeviceId)
+
     /** Track the display name from the carer's pair list reactively so a
      *  rename via the existing /pair/:id/names flow shows up immediately. */
     private val displayNameFlow: StateFlow<String?> = graph.pairingRepository.state
@@ -47,6 +53,14 @@ class HelpingCareeViewModel(
         viewModelScope.launch {
             displayNameFlow.collect { name ->
                 _ui.update { it.copy(careeDisplayName = name) }
+            }
+        }
+        // Refresh when a `shortcut_changed` FCM targets this caree —
+        // covers the case where another carer of the same caree edited
+        // while this screen was open.
+        viewModelScope.launch {
+            graph.remoteShortcutCoordinator.carerSideChanges.collect { changedCaree ->
+                if (changedCaree == careeDeviceId) refresh()
             }
         }
         refresh()
@@ -72,6 +86,28 @@ class HelpingCareeViewModel(
                         error = result.message.ifBlank { "Couldn't refresh" },
                     )
                 }
+            }
+        }
+    }
+
+    /** Delete a caree's shortcut on their behalf. Optimistically removes
+     *  the row from local state; if the server PATCH fails we re-fetch so
+     *  the UI realigns with the server's truth instead of lying about a
+     *  delete that never landed. */
+    fun deleteShortcut(id: String) {
+        viewModelScope.launch {
+            val previous = _ui.value.shortcuts
+            _ui.update { it.copy(shortcuts = previous.filterNot { s -> s.id == id }) }
+            try {
+                store.delete(id)
+            } catch (e: RemoteStoreException) {
+                _ui.update {
+                    it.copy(
+                        shortcuts = previous,
+                        error = e.message ?: "Couldn't delete",
+                    )
+                }
+                refresh()
             }
         }
     }

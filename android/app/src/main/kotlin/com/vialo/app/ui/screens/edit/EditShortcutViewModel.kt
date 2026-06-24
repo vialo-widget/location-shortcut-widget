@@ -1,10 +1,12 @@
 package com.vialo.app.ui.screens.edit
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vialo.app.data.Graph
 import com.vialo.app.data.model.ExpiryOption
 import com.vialo.app.data.model.Shortcut
+import com.vialo.app.data.repo.ShortcutStore
 import com.vialo.app.data.validation.DuplicateChecker
 import com.vialo.app.data.validation.SaveBlocker
 import com.vialo.app.data.validation.toBlocker
@@ -36,6 +38,7 @@ data class EditUiState(
 
 class EditShortcutViewModel(
     private val graph: Graph,
+    private val store: ShortcutStore,
     private val shortcutId: String,
 ) : ViewModel() {
 
@@ -44,7 +47,10 @@ class EditShortcutViewModel(
 
     init {
         viewModelScope.launch {
-            val existing = graph.shortcutRepository.get(shortcutId)
+            val existing = runCatching { store.get(shortcutId) }.getOrElse { e ->
+                Log.w(TAG, "get() failed", e)
+                null
+            }
             _state.value = if (existing == null) {
                 EditUiState(loading = false, notFound = true)
             } else {
@@ -90,7 +96,11 @@ class EditShortcutViewModel(
         val label = s.label.trim().ifBlank { original.label }
         _state.update { it.copy(isSaving = true) }
         viewModelScope.launch {
-            val all = graph.shortcutRepository.list()
+            val all = runCatching { store.list() }.getOrElse { e ->
+                Log.w(TAG, "list() failed", e)
+                _state.update { it.copy(isSaving = false) }
+                return@launch
+            }
             val blocker = DuplicateChecker
                 .check(all, s.latitude, s.longitude, label, excludeId = original.id)
                 .toBlocker()
@@ -113,8 +123,6 @@ class EditShortcutViewModel(
             // Edit's replace flow: delete the row being edited AND update
             // the matched row in-place. Net result is one row, with the
             // matched shortcut's id/sortOrder preserved.
-            graph.shortcutRepository.delete(original.id)
-            graph.expiryNotifier.cancel(original.id)
             val updated = matched.copy(
                 label = label,
                 address = s.address,
@@ -124,10 +132,17 @@ class EditShortcutViewModel(
                 iconName = s.iconKey,
                 expiresAt = nextExpiresAt(s, original, now),
             )
-            graph.shortcutRepository.update(updated)
-            graph.expiryNotifier.cancel(matched.id)
-            graph.expiryNotifier.schedule(updated)
-            _state.update { it.copy(isSaving = false, closed = true) }
+            val result = runCatching {
+                store.delete(original.id)
+                store.update(updated)
+            }
+            result.fold(
+                onSuccess = { _state.update { it.copy(isSaving = false, closed = true) } },
+                onFailure = { e ->
+                    Log.w(TAG, "replace failed", e)
+                    _state.update { it.copy(isSaving = false) }
+                },
+            )
         }
     }
 
@@ -136,9 +151,10 @@ class EditShortcutViewModel(
     fun delete() {
         val original = _state.value.original ?: return
         viewModelScope.launch {
-            graph.shortcutRepository.delete(original.id)
-            graph.expiryNotifier.cancel(original.id)
-            _state.update { it.copy(closed = true) }
+            runCatching { store.delete(original.id) }.fold(
+                onSuccess = { _state.update { it.copy(closed = true) } },
+                onFailure = { e -> Log.w(TAG, "delete() failed", e) },
+            )
         }
     }
 
@@ -153,9 +169,13 @@ class EditShortcutViewModel(
             placeId = s.placeId,
             expiresAt = nextExpiresAt(s, original, now),
         )
-        graph.shortcutRepository.update(updated)
-        graph.expiryNotifier.schedule(updated)
-        _state.update { it.copy(isSaving = false, closed = true) }
+        runCatching { store.update(updated) }.fold(
+            onSuccess = { _state.update { it.copy(isSaving = false, closed = true) } },
+            onFailure = { e ->
+                Log.w(TAG, "update() failed", e)
+                _state.update { it.copy(isSaving = false) }
+            },
+        )
     }
 
     /** Only reset the expiry clock when the user actually picked a new
@@ -167,5 +187,9 @@ class EditShortcutViewModel(
             s.expiryOption == originalOption -> original.expiresAt
             else -> s.expiryOption.expiresAt(now)
         }
+    }
+
+    private companion object {
+        const val TAG = "EditShortcutViewModel"
     }
 }

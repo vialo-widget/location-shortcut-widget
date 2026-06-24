@@ -1,10 +1,12 @@
 package com.vialo.app.ui.screens.add
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vialo.app.data.Graph
 import com.vialo.app.data.model.ExpiryOption
 import com.vialo.app.data.model.Shortcut
+import com.vialo.app.data.repo.ShortcutStore
 import com.vialo.app.data.validation.DuplicateChecker
 import com.vialo.app.data.validation.SaveBlocker
 import com.vialo.app.data.validation.toBlocker
@@ -34,7 +36,10 @@ data class AddUiState(
     val blocker: SaveBlocker? = null,
 )
 
-class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
+class AddShortcutViewModel(
+    private val graph: Graph,
+    private val store: ShortcutStore,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(AddUiState())
     val state: StateFlow<AddUiState> = _state.asStateFlow()
@@ -97,7 +102,11 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
         }
         _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            val all = graph.shortcutRepository.list()
+            val all = runCatching { store.list() }.getOrElse { e ->
+                Log.w(TAG, "list() failed", e)
+                _state.update { it.copy(isSaving = false, error = e.message ?: "Couldn't load existing places.") }
+                return@launch
+            }
             val blocker = DuplicateChecker
                 .check(all, place.latitude, place.longitude, label)
                 .toBlocker()
@@ -128,10 +137,13 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
                 iconName = s.iconKey,
                 expiresAt = s.expiryOption.expiresAt(now),
             )
-            graph.shortcutRepository.update(updated)
-            graph.expiryNotifier.cancel(matched.id)
-            graph.expiryNotifier.schedule(updated)
-            _state.update { it.copy(isSaving = false, savedShortcutId = updated.id) }
+            runCatching { store.update(updated) }.fold(
+                onSuccess = { _state.update { it.copy(isSaving = false, savedShortcutId = updated.id) } },
+                onFailure = { e ->
+                    Log.w(TAG, "update() failed", e)
+                    _state.update { it.copy(isSaving = false, error = e.message ?: "Couldn't save.") }
+                },
+            )
         }
     }
 
@@ -151,12 +163,17 @@ class AddShortcutViewModel(private val graph: Graph) : ViewModel() {
             createdAt = now,
             expiresAt = _state.value.expiryOption.expiresAt(now),
         )
-        graph.shortcutRepository.add(shortcut)
-        graph.expiryNotifier.schedule(shortcut)
-        _state.update { it.copy(isSaving = false, savedShortcutId = shortcut.id) }
+        runCatching { store.add(shortcut) }.fold(
+            onSuccess = { _state.update { it.copy(isSaving = false, savedShortcutId = shortcut.id) } },
+            onFailure = { e ->
+                Log.w(TAG, "add() failed", e)
+                _state.update { it.copy(isSaving = false, error = e.message ?: "Couldn't save.") }
+            },
+        )
     }
 
     private companion object {
         const val LABEL_MAX_LEN = 30
+        const val TAG = "AddShortcutViewModel"
     }
 }

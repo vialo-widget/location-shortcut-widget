@@ -80,6 +80,15 @@ class VialoFirebaseService : FirebaseMessagingService() {
                 val body = message.notification?.body.orEmpty()
                 notif.simple(channelType = type, title = title, body = body)
             }
+            "shortcut_changed" -> {
+                // Silent push — no system notification. Routes through the
+                // coordinator: targets self → auto-apply to local DB; targets
+                // a caree we help → SharedFlow nudges any open ViewModel
+                // looking at that caree.
+                val careeDeviceId = message.data["caree_device_id"].orEmpty()
+                val app = application as? VialoApplication
+                app?.graph?.remoteShortcutCoordinator?.onShortcutChanged(careeDeviceId)
+            }
             else -> Log.w(TAG, "Unknown FCM type: $type")
         }
     }

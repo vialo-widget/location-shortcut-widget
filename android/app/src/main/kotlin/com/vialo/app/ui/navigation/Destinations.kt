@@ -28,4 +28,13 @@ object Destinations {
     /** Carer opens a per-caree screen showing that caree's shortcuts. */
     const val HELPING_CAREE_ROUTE = "helping/{careeDeviceId}"
     fun helpingCaree(careeDeviceId: String) = "helping/$careeDeviceId"
+
+    /** Carer adds a new shortcut on a caree's behalf. */
+    const val CARER_ADD_ROUTE = "carer/{careeDeviceId}/add"
+    fun carerAdd(careeDeviceId: String) = "carer/$careeDeviceId/add"
+
+    /** Carer edits one of a caree's existing shortcuts. */
+    const val CARER_EDIT_ROUTE = "carer/{careeDeviceId}/edit/{shortcutId}"
+    fun carerEdit(careeDeviceId: String, shortcutId: String) =
+        "carer/$careeDeviceId/edit/$shortcutId"
 }

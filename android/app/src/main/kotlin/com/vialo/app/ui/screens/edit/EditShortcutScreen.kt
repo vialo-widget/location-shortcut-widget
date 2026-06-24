@@ -57,11 +57,22 @@ import com.vialo.app.ui.components.SaveBlockerDialog
 fun EditShortcutScreen(
     shortcutId: String,
     onClose: () -> Unit,
+    /** When non-null, the carer is editing on this caree's behalf — reads
+     *  and writes go through the sync backend rather than the local DB. */
+    careeDeviceId: String? = null,
 ) {
     val graph = LocalGraph.current
+    val store = androidx.compose.runtime.remember(careeDeviceId) {
+        if (careeDeviceId == null) {
+            com.vialo.app.data.repo.LocalShortcutStore(graph.shortcutRepository, graph.expiryNotifier)
+        } else {
+            com.vialo.app.data.repo.RemoteShortcutStore(graph.vialoApi, careeDeviceId)
+        }
+    }
+    val vmKey = careeDeviceId?.let { "$it/$shortcutId" } ?: shortcutId
     val vm: EditShortcutViewModel = viewModel(
-        key = shortcutId,
-        factory = viewModelFactory { initializer { EditShortcutViewModel(graph, shortcutId) } },
+        key = vmKey,
+        factory = viewModelFactory { initializer { EditShortcutViewModel(graph, store, shortcutId) } },
     )
     val state by vm.state.collectAsStateWithLifecycle()
     var showDeleteConfirm by remember { mutableStateOf(false) }

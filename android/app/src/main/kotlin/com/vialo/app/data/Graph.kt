@@ -9,6 +9,7 @@ import com.vialo.app.data.pairing.VialoApi
 import com.vialo.app.data.repo.ShortcutRepository
 import com.vialo.app.data.settings.AppSettings
 import com.vialo.app.data.sync.CareeStateSyncer
+import com.vialo.app.data.sync.RemoteShortcutCoordinator
 import com.vialo.app.service.location.LocationService
 import com.vialo.app.service.notification.ExpiryNotifier
 import com.vialo.app.service.search.NominatimClient
@@ -61,5 +62,18 @@ class Graph(context: Context) {
      *  by [com.vialo.app.VialoApplication]. */
     val careeStateSyncer: CareeStateSyncer by lazy {
         CareeStateSyncer(pairingRepository, shortcutRepository, vialoApi, pairingScope)
+    }
+
+    /** Routes `shortcut_changed` FCM events to either the caree auto-apply
+     *  path (when the event targets this device) or a SharedFlow that
+     *  carer-side ViewModels observe to refresh open screens. */
+    val remoteShortcutCoordinator: RemoteShortcutCoordinator by lazy {
+        RemoteShortcutCoordinator(
+            deviceIdentity,
+            vialoApi,
+            shortcutRepository,
+            expiryNotifier,
+            pairingScope,
+        )
     }
 }

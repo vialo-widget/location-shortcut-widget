@@ -32,8 +32,19 @@ interface ShortcutDao {
     @Query("DELETE FROM shortcuts WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query("DELETE FROM shortcuts")
+    suspend fun deleteAll()
+
     @Query("DELETE FROM shortcuts WHERE expiresAtMillis IS NOT NULL AND expiresAtMillis < :nowMillis")
     suspend fun deleteExpired(nowMillis: Long): Int
+
+    /** Wholesale-replace the table. Used when a paired carer's edits arrive
+     *  via FCM and the caree's local snapshot needs to mirror the server's. */
+    @Transaction
+    suspend fun replaceAll(entities: List<ShortcutEntity>) {
+        deleteAll()
+        insertAll(entities)
+    }
 
     /**
      * Apply a new ordering by id. Missing ids are left alone; unknown ids

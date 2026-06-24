@@ -1,31 +1,40 @@
 package com.vialo.app.ui.screens.carer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.vialo.app.data.model.Shortcut
 import com.vialo.app.service.navigation.NavigationLauncher
 import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.components.ShortcutTile
@@ -57,16 +67,20 @@ import com.vialo.app.ui.components.ShortcutTile
 fun HelpingCareeScreen(
     careeDeviceId: String,
     onBack: () -> Unit,
+    onAddShortcut: () -> Unit,
+    onEditShortcut: (String) -> Unit,
 ) {
     val graph = LocalGraph.current
     val context = LocalContext.current
     val vm: HelpingCareeViewModel = viewModel(
+        key = "helping/$careeDeviceId",
         factory = viewModelFactory {
             initializer { HelpingCareeViewModel(graph, careeDeviceId) }
         },
     )
     val state by vm.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    var actionTarget by remember { mutableStateOf<Shortcut?>(null) }
 
     // Re-fetch when the user comes back to this screen so chunk 4's FCM
     // shortcut_changed handler isn't the only path that pulls fresh state.
@@ -101,38 +115,107 @@ fun HelpingCareeScreen(
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        when {
-            state.isLoading && state.shortcuts.isEmpty() -> Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 20.dp),
+        ) {
+            when {
+                state.isLoading && state.shortcuts.isEmpty() -> Box(
+                    modifier = Modifier.weight(1f).fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) { CircularProgressIndicator() }
 
-            state.shortcuts.isEmpty() -> EmptyState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            )
+                state.shortcuts.isEmpty() -> EmptyState(
+                    modifier = Modifier.weight(1f).fillMaxSize(),
+                )
 
-            else -> LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(state.shortcuts, key = { it.id }) { shortcut ->
-                    ShortcutTile(
-                        shortcut = shortcut,
-                        onTap = { NavigationLauncher.launch(context, shortcut) },
-                        onLongPress = { /* chunk 4 — open edit/delete sheet */ },
-                    )
+                else -> LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.weight(1f).fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(state.shortcuts, key = { it.id }) { shortcut ->
+                        ShortcutTile(
+                            shortcut = shortcut,
+                            onTap = { NavigationLauncher.launch(context, shortcut) },
+                            onLongPress = { actionTarget = shortcut },
+                        )
+                    }
                 }
             }
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = onAddShortcut,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Add shortcut", style = MaterialTheme.typography.titleMedium)
+            }
+            Spacer(Modifier.height(20.dp))
         }
+    }
+
+    actionTarget?.let { target ->
+        ShortcutActionsSheet(
+            shortcut = target,
+            onDismiss = { actionTarget = null },
+            onNavigate = {
+                NavigationLauncher.launch(context, target)
+                actionTarget = null
+            },
+            onEdit = {
+                actionTarget = null
+                onEditShortcut(target.id)
+            },
+            onDelete = {
+                vm.deleteShortcut(target.id)
+                actionTarget = null
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShortcutActionsSheet(
+    shortcut: Shortcut,
+    onDismiss: () -> Unit,
+    onNavigate: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                shortcut.label,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 12.dp),
+            )
+            SheetAction("Navigate") { onNavigate() }
+            SheetAction("Edit") { onEdit() }
+            SheetAction("Delete", destructive = true) { onDelete() }
+        }
+    }
+}
+
+@Composable
+private fun SheetAction(label: String, destructive: Boolean = false, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = 4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (destructive) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 

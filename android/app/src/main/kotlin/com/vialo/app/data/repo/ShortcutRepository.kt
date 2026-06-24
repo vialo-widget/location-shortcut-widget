@@ -38,6 +38,13 @@ class ShortcutRepository(private val dao: ShortcutDao) {
 
     suspend fun reorder(orderedIds: List<String>) = dao.applyOrdering(orderedIds)
 
+    /** Atomically replace the entire table. Used by the carer-edit auto-
+     *  apply path on the caree's device — the server is the source of
+     *  truth for that pair, so we mirror its snapshot wholesale rather
+     *  than diffing rows. */
+    suspend fun replaceAll(shortcuts: List<Shortcut>) =
+        dao.replaceAll(shortcuts.map { it.toEntity() })
+
     /** Returns the number of rows removed. */
     suspend fun pruneExpired(nowMillis: Long = System.currentTimeMillis()): Int =
         dao.deleteExpired(nowMillis)

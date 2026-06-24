@@ -105,6 +105,36 @@ fun VialoNavHost(
             HelpingCareeScreen(
                 careeDeviceId = id,
                 onBack = { navController.popBackStack() },
+                onAddShortcut = { navController.navigate(Destinations.carerAdd(id)) },
+                onEditShortcut = { shortcutId ->
+                    navController.navigate(Destinations.carerEdit(id, shortcutId))
+                },
+            )
+        }
+        composable(
+            Destinations.CARER_ADD_ROUTE,
+            arguments = listOf(navArgument("careeDeviceId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val careeId = backStackEntry.arguments?.getString("careeDeviceId").orEmpty()
+            AddShortcutScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+                careeDeviceId = careeId,
+            )
+        }
+        composable(
+            Destinations.CARER_EDIT_ROUTE,
+            arguments = listOf(
+                navArgument("careeDeviceId") { type = NavType.StringType },
+                navArgument("shortcutId") { type = NavType.StringType },
+            ),
+        ) { backStackEntry ->
+            val careeId = backStackEntry.arguments?.getString("careeDeviceId").orEmpty()
+            val shortcutId = backStackEntry.arguments?.getString("shortcutId").orEmpty()
+            EditShortcutScreen(
+                shortcutId = shortcutId,
+                onClose = { navController.popBackStack() },
+                careeDeviceId = careeId,
             )
         }
     }
