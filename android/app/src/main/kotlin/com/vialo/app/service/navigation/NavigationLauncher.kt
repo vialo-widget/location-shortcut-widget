@@ -6,29 +6,42 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import com.vialo.app.data.model.Shortcut
+import com.vialo.app.data.model.TransportMode
 
 /**
- * Launches turn-by-turn navigation to a [Shortcut].
+ * Resolves a [Shortcut] to the right external app based on its
+ * [TransportMode] and launches it.
  *
- * Fallback chain (in order):
- *   1. `google.navigation:q=lat,lng` with the Google Maps package — fastest,
- *      goes straight into navigation mode.
- *   2. `geo:lat,lng?q=lat,lng(label)` — handled by any maps app on the device
- *      (Waze, OsmAnd, Maps.me, …).
- *   3. `https://www.google.com/maps/dir/?api=1&destination=…` — opens the
- *      browser as the final resort.
+ * Each mode has a primary intent and one or more fallbacks — we try them
+ * in order and fire the first one any installed app can handle. Package
+ * visibility for these is declared in the manifest `<queries>` block.
  *
- * Needs the corresponding `<queries>` block in the manifest so
- * Intent#resolveActivity can see other apps' filters on Android 11+.
+ *   - **DRIVE**: `google.navigation:` → `geo:` → Maps URL. Same chain as
+ *     before transport modes were a thing, so existing shortcuts behave
+ *     identically.
+ *   - **TRANSIT**: Google Maps URLs API with `travelmode=transit` — opens
+ *     the Maps app on directions with the transit tab selected. Falls
+ *     back to the same URL in a browser.
+ *   - **UBER**: `m.uber.com/ul/` universal link with `pickup=my_location`
+ *     and the dropoff coordinates. Opens the Uber app if installed, web
+ *     flow otherwise.
  */
 object NavigationLauncher {
 
     fun launch(context: Context, shortcut: Shortcut): Boolean {
-        val attempts = sequenceOf(
-            googleNavigationIntent(shortcut),
-            geoIntent(shortcut),
-            webMapsIntent(shortcut),
-        )
+        val attempts: Sequence<Intent> = when (shortcut.transportMode) {
+            TransportMode.DRIVE -> sequenceOf(
+                googleNavigationIntent(shortcut),
+                geoIntent(shortcut),
+                webMapsDirectionsIntent(shortcut, travelMode = null),
+            )
+            TransportMode.TRANSIT -> sequenceOf(
+                webMapsDirectionsIntent(shortcut, travelMode = "transit"),
+            )
+            TransportMode.UBER -> sequenceOf(
+                uberIntent(shortcut),
+            )
+        }
         for (intent in attempts) {
             if (intent.resolveActivity(context.packageManager) != null) {
                 return try {
@@ -40,7 +53,7 @@ object NavigationLauncher {
                 }
             }
         }
-        Log.w(TAG, "No handler could launch navigation for $shortcut")
+        Log.w(TAG, "No handler could launch ${shortcut.transportMode} for $shortcut")
         return false
     }
 
@@ -61,14 +74,32 @@ object NavigationLauncher {
         )
     }
 
-    private fun webMapsIntent(shortcut: Shortcut): Intent =
-        Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse(
-                "https://www.google.com/maps/dir/?api=1" +
-                    "&destination=${shortcut.latitude},${shortcut.longitude}",
-            ),
-        )
+    /** Maps URLs API. `travelMode` of "transit", "driving", "walking",
+     *  "bicycling", or null (lets Maps pick its default). */
+    private fun webMapsDirectionsIntent(shortcut: Shortcut, travelMode: String?): Intent {
+        val base = "https://www.google.com/maps/dir/?api=1" +
+            "&destination=${shortcut.latitude},${shortcut.longitude}"
+        val url = if (travelMode != null) "$base&travelmode=$travelMode" else base
+        return Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    }
+
+    /** Uber universal deep link. `pickup=my_location` lets Uber resolve the
+     *  caller's current location itself, so we don't need a GPS fix. The
+     *  `dropoff[formatted_address]` and `[nickname]` fields populate the
+     *  confirm screen — using the shortcut's stored address keeps the
+     *  field consistent with what we show elsewhere in-app. */
+    private fun uberIntent(shortcut: Shortcut): Intent {
+        val builder = Uri.parse("https://m.uber.com/ul/").buildUpon()
+            .appendQueryParameter("action", "setPickup")
+            .appendQueryParameter("pickup", "my_location")
+            .appendQueryParameter("dropoff[latitude]", shortcut.latitude.toString())
+            .appendQueryParameter("dropoff[longitude]", shortcut.longitude.toString())
+            .appendQueryParameter("dropoff[nickname]", shortcut.label)
+        if (shortcut.address.isNotBlank()) {
+            builder.appendQueryParameter("dropoff[formatted_address]", shortcut.address)
+        }
+        return Intent(Intent.ACTION_VIEW, builder.build())
+    }
 
     private const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
     private const val TAG = "NavigationLauncher"

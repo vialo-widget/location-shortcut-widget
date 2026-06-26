@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vialo.app.data.Graph
 import com.vialo.app.data.model.ExpiryOption
 import com.vialo.app.data.model.Shortcut
+import com.vialo.app.data.model.TransportMode
 import com.vialo.app.data.repo.ShortcutStore
 import com.vialo.app.data.validation.DuplicateChecker
 import com.vialo.app.data.validation.SaveBlocker
@@ -27,6 +28,7 @@ data class EditUiState(
     val iconKey: String = "place",
     val userPickedIcon: Boolean = false,
     val expiryOption: ExpiryOption = ExpiryOption.NEVER,
+    val transportMode: TransportMode = TransportMode.DRIVE,
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val address: String = "",
@@ -60,6 +62,7 @@ class EditShortcutViewModel(
                     label = existing.label,
                     iconKey = existing.iconName,
                     expiryOption = ExpiryOption.infer(existing.expiresAt, existing.createdAt),
+                    transportMode = existing.transportMode,
                     latitude = existing.latitude,
                     longitude = existing.longitude,
                     address = existing.address,
@@ -76,6 +79,7 @@ class EditShortcutViewModel(
 
     fun setIcon(k: String) = _state.update { it.copy(iconKey = k, userPickedIcon = true) }
     fun setExpiry(o: ExpiryOption) = _state.update { it.copy(expiryOption = o) }
+    fun setTransportMode(m: TransportMode) = _state.update { it.copy(transportMode = m) }
 
     fun setLocation(place: PlaceResult) = _state.update {
         it.copy(
@@ -131,6 +135,7 @@ class EditShortcutViewModel(
                 placeId = s.placeId,
                 iconName = s.iconKey,
                 expiresAt = nextExpiresAt(s, original, now),
+                transportMode = s.transportMode,
             )
             val result = runCatching {
                 store.delete(original.id)
@@ -168,6 +173,7 @@ class EditShortcutViewModel(
             address = s.address,
             placeId = s.placeId,
             expiresAt = nextExpiresAt(s, original, now),
+            transportMode = s.transportMode,
         )
         runCatching { store.update(updated) }.fold(
             onSuccess = { _state.update { it.copy(isSaving = false, closed = true) } },

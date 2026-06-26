@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.vialo.app.data.Graph
 import com.vialo.app.data.model.ExpiryOption
 import com.vialo.app.data.model.Shortcut
+import com.vialo.app.data.model.TransportMode
 import com.vialo.app.data.repo.ShortcutStore
 import com.vialo.app.data.validation.DuplicateChecker
 import com.vialo.app.data.validation.SaveBlocker
@@ -29,6 +30,7 @@ data class AddUiState(
      *  choice via auto-detect. */
     val userPickedIcon: Boolean = false,
     val expiryOption: ExpiryOption = ExpiryOption.NEVER,
+    val transportMode: TransportMode = TransportMode.DRIVE,
     val isSaving: Boolean = false,
     val savedShortcutId: String? = null,
     val error: String? = null,
@@ -67,6 +69,7 @@ class AddShortcutViewModel(
 
     fun setIcon(key: String) = _state.update { it.copy(iconKey = key, userPickedIcon = true) }
     fun setExpiry(option: ExpiryOption) = _state.update { it.copy(expiryOption = option) }
+    fun setTransportMode(mode: TransportMode) = _state.update { it.copy(transportMode = mode) }
     fun clearError() = _state.update { it.copy(error = null) }
 
     fun useCurrentLocation() {
@@ -136,6 +139,7 @@ class AddShortcutViewModel(
                 placeId = place.placeId,
                 iconName = s.iconKey,
                 expiresAt = s.expiryOption.expiresAt(now),
+                transportMode = s.transportMode,
             )
             runCatching { store.update(updated) }.fold(
                 onSuccess = { _state.update { it.copy(isSaving = false, savedShortcutId = updated.id) } },
@@ -162,6 +166,7 @@ class AddShortcutViewModel(
             sortOrder = currentCount,
             createdAt = now,
             expiresAt = _state.value.expiryOption.expiresAt(now),
+            transportMode = _state.value.transportMode,
         )
         runCatching { store.add(shortcut) }.fold(
             onSuccess = { _state.update { it.copy(isSaving = false, savedShortcutId = shortcut.id) } },

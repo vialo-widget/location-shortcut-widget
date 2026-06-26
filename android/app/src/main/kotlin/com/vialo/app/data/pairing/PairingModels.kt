@@ -115,6 +115,10 @@ data class RemoteShortcut(
     @SerialName("sort_order") val sortOrder: Int,
     @SerialName("created_at_millis") val createdAtMillis: Long,
     @SerialName("expires_at_millis") val expiresAtMillis: Long? = null,
+    /** Enum name from [com.vialo.app.data.model.TransportMode]. Default
+     *  carried as the wire fallback so snapshots written by an older
+     *  client (no field) decode as DRIVE on a newer peer. */
+    @SerialName("transport_mode") val transportMode: String = "DRIVE",
 )
 
 @Serializable

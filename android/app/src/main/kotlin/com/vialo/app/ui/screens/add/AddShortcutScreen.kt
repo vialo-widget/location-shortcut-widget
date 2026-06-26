@@ -39,6 +39,7 @@ import com.vialo.app.ui.components.ExpiryPicker
 import com.vialo.app.ui.components.IconPickerCompact
 import com.vialo.app.ui.components.PlaceSearchField
 import com.vialo.app.ui.components.SaveBlockerDialog
+import com.vialo.app.ui.components.TransportModePicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,6 +129,18 @@ fun AddShortcutScreen(
             )
             Spacer(Modifier.height(8.dp))
             IconPickerCompact(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
+
+            Spacer(Modifier.height(20.dp))
+            Text(
+                "Open with",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(8.dp))
+            TransportModePicker(
+                selected = state.transportMode,
+                onSelect = vm::setTransportMode,
+            )
 
             Spacer(Modifier.height(20.dp))
             Text(

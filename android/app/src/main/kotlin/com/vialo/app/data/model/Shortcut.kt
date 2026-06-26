@@ -20,6 +20,7 @@ data class Shortcut(
     val sortOrder: Int,
     val createdAt: Instant,
     val expiresAt: Instant?,
+    val transportMode: TransportMode = TransportMode.DRIVE,
 ) {
     companion object {
         /** Generate a fresh, stable id for a newly-created shortcut. */
@@ -38,6 +39,7 @@ fun Shortcut.toRemote(): RemoteShortcut = RemoteShortcut(
     sortOrder = sortOrder,
     createdAtMillis = createdAt.toEpochMilli(),
     expiresAtMillis = expiresAt?.toEpochMilli(),
+    transportMode = transportMode.name,
 )
 
 fun RemoteShortcut.toDomain(): Shortcut = Shortcut(
@@ -51,4 +53,5 @@ fun RemoteShortcut.toDomain(): Shortcut = Shortcut(
     sortOrder = sortOrder,
     createdAt = Instant.ofEpochMilli(createdAtMillis),
     expiresAt = expiresAtMillis?.let(Instant::ofEpochMilli),
+    transportMode = TransportMode.fromName(transportMode),
 )
