@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, finishing-touches, carer-caree]
+    branches: [main, finishing-touches, carer-caree, designupdates]
   pull_request:
     branches: [main]
   workflow_dispatch:
