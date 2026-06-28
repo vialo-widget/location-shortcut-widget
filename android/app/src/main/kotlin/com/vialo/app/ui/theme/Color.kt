@@ -51,3 +51,19 @@ val DarkSurfaceVariant = Color(0xFF44483D)
 val DarkOnSurfaceVariant = Color(0xFFC5C8BA)
 val DarkOutline = Color(0xFF8E9285)
 val DarkOutlineVariant = Color(0xFF44483D)
+
+// ─── Semantic accents ──────────────────────────────────────────────────────
+// Expiry states — used by the shortcut tile and the badge inside it. The
+// backgrounds are deliberately muted so an expiring shortcut reads as
+// "needs attention" instead of "screaming red wall"; the foregrounds land
+// on those backgrounds with WCAG-AA contrast on both themes.
+val ExpiryUrgentBgLight = Color(0xFFFDE8E8)
+val ExpiryUrgentBgDark = Color(0xFF3D0A0A)
+val ExpiryUrgentFg = Color(0xFFC62828)
+
+val ExpiryWarningBgLight = Color(0xFFFFF3E0)
+val ExpiryWarningBgDark = Color(0xFF2E1A00)
+val ExpiryWarningFg = Color(0xFFFF8F00)
+
+val ExpirySubtleFg = Color(0xFF9E9E9E)
+val BadgeOnAccent = Color(0xFFFFFFFF)
