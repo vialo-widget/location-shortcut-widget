@@ -1,5 +1,6 @@
 package com.vialo.app.ui.pairing
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
@@ -35,6 +37,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.data.pairing.InboundInvite
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.theme.VialoDimens
 
 /**
  * Full-page in-app prompt shown to the caree whenever a carer has a
@@ -97,29 +100,34 @@ fun PairingInviteOverlay(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .padding(horizontal = VialoDimens.gapXl - 8.dp, vertical = VialoDimens.gapXl),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.weight(1f))
             Box(
-                modifier = Modifier.size(96.dp),
+                modifier = Modifier
+                    .size(VialoDimens.avatarLg)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = CircleShape,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Outlined.PersonAdd,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(VialoDimens.iconXl),
                 )
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(VialoDimens.gapLg))
             Text(
                 "${nextInvite.carerDisplayName} wants to help you",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.gapMd))
             Text(
                 "If you accept, ${nextInvite.carerDisplayName} will be able to " +
                     "see and update the places saved on your Vialo. You can " +
@@ -140,7 +148,7 @@ fun PairingInviteOverlay(
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.gapMd))
             OutlinedButton(
                 onClick = { vm.rejectInvite(nextInvite.pendingId) },
                 enabled = !working,
@@ -151,7 +159,7 @@ fun PairingInviteOverlay(
             ) {
                 Text("Reject", style = MaterialTheme.typography.titleMedium)
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(VialoDimens.gapXs))
             // Skip is intentionally subtle — it's "decide later", not a
             // first-class action. Stays in-memory only, so the overlay
             // resurfaces on the next cold start.
@@ -166,7 +174,7 @@ fun PairingInviteOverlay(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(VialoDimens.gapSm))
         }
     }
 }

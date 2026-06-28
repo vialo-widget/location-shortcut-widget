@@ -9,22 +9,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +35,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.data.pairing.InboundInvite
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.VialoDimens
 
 /**
  * Caree's accept/reject screen, addressed by a specific [pendingId].
@@ -79,23 +76,14 @@ fun AcceptInviteScreen(
     val invite: InboundInvite? = state.inbox.firstOrNull { it.pendingId == pendingId }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Helper request") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-            )
-        },
+        topBar = { VialoTopBar(title = "Helper request", onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = VialoDimens.screenH),
         ) {
             if (invite == null) {
                 Column(
@@ -107,14 +95,14 @@ fun AcceptInviteScreen(
                         "This request is no longer available",
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(VialoDimens.gapSm))
                     Text(
                         "It may have expired or been cancelled.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(VialoDimens.gapXl - 8.dp))
                     Button(onClick = onBack) { Text("OK") }
                 }
                 return@Box
@@ -124,10 +112,10 @@ fun AcceptInviteScreen(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(Modifier.height(40.dp))
+                Spacer(Modifier.height(VialoDimens.gapXl + 8.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(VialoDimens.cornerLg + 4.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),
@@ -135,7 +123,7 @@ fun AcceptInviteScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(28.dp),
+                            .padding(VialoDimens.gapXl - 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
@@ -145,7 +133,7 @@ fun AcceptInviteScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             textAlign = TextAlign.Center,
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(VialoDimens.gapSm))
                         Text(
                             "is ready to help you with Vialo",
                             style = MaterialTheme.typography.titleMedium,
@@ -154,7 +142,7 @@ fun AcceptInviteScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(VialoDimens.gapXl - 4.dp))
                 Text(
                     "They will be able to see and change your saved places. " +
                         "They cannot see your location or anything else.",
@@ -169,7 +157,7 @@ fun AcceptInviteScreen(
                 ) {
                     Text("Accept", style = MaterialTheme.typography.titleMedium)
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(VialoDimens.gapSm))
                 OutlinedButton(
                     onClick = { vm.rejectInvite(invite.pendingId, onRejected = { onDone() }) },
                     modifier = Modifier.fillMaxWidth(),
@@ -179,7 +167,7 @@ fun AcceptInviteScreen(
                 ) {
                     Text("Reject", style = MaterialTheme.typography.titleMedium)
                 }
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(VialoDimens.screenBottom))
             }
         }
     }

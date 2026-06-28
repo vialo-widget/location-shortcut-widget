@@ -8,19 +8,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +30,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.VialoDimens
 
 /**
  * Carer enters the 6-digit code their caree gave them, plus the two display
@@ -81,33 +78,24 @@ fun EnterCodeScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Help someone") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-            )
-        },
+        topBar = { VialoTopBar(title = "Help someone", onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = VialoDimens.screenH),
             verticalArrangement = Arrangement.Top,
         ) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.gapMd))
             Text(
                 "Ask them to open Vialo, switch to the Caree tab, tap " +
                     "\"Add a helper\", and read you the 6-digit code.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(VialoDimens.gapXl - 8.dp))
             OutlinedTextField(
                 value = code,
                 onValueChange = { v -> code = v.filter(Char::isDigit).take(6) },
@@ -116,7 +104,7 @@ fun EnterCodeScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(VialoDimens.gapLg))
             OutlinedTextField(
                 value = carerName,
                 onValueChange = { carerName = it.take(40) },
@@ -125,7 +113,7 @@ fun EnterCodeScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.gapMd))
             OutlinedTextField(
                 value = careeName,
                 onValueChange = { careeName = it.take(40) },
@@ -134,7 +122,7 @@ fun EnterCodeScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(VialoDimens.gapXl - 4.dp))
             Button(
                 onClick = {
                     vm.redeemCode(code, carerName.trim(), careeName.trim())

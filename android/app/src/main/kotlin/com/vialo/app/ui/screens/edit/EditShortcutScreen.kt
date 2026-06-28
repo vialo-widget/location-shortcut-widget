@@ -12,14 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -28,8 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +45,13 @@ import com.vialo.app.ui.components.ExpiryPicker
 import com.vialo.app.ui.components.IconPickerCompact
 import com.vialo.app.ui.components.PlaceSearchField
 import com.vialo.app.ui.components.SaveBlockerDialog
+import com.vialo.app.ui.components.SectionCard
+import com.vialo.app.ui.components.SectionLabel
+import com.vialo.app.ui.components.SectionLabelGap
+import com.vialo.app.ui.components.SectionSpacer
 import com.vialo.app.ui.components.TransportModePicker
+import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.VialoDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +63,7 @@ fun EditShortcutScreen(
     careeDeviceId: String? = null,
 ) {
     val graph = LocalGraph.current
-    val store = androidx.compose.runtime.remember(careeDeviceId) {
+    val store = remember(careeDeviceId) {
         if (careeDeviceId == null) {
             com.vialo.app.data.repo.LocalShortcutStore(graph.shortcutRepository, graph.expiryNotifier)
         } else {
@@ -84,17 +84,7 @@ fun EditShortcutScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit shortcut") },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
-        },
+        topBar = { VialoTopBar(title = "Edit shortcut", onBack = onClose) },
     ) { padding ->
         if (state.loading) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -102,73 +92,87 @@ fun EditShortcutScreen(
             }
             return@Scaffold
         }
-        val original = state.original ?: return@Scaffold
+        // Discard the loaded snapshot only after we've used it — we don't
+        // reference `original` directly in this body, but the load gate
+        // above protects against rendering a half-loaded form.
+        state.original ?: return@Scaffold
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = VialoDimens.screenH)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = state.label,
-                onValueChange = vm::setLabel,
-                label = { Text("Label") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Spacer(Modifier.height(VialoDimens.screenTop))
 
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Location",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            LocationRow(
-                address = state.address,
-                onChangeClick = { showLocationPicker = true },
-            )
+            SectionLabel("Where")
+            SectionLabelGap()
+            SectionCard {
+                OutlinedTextField(
+                    value = state.label,
+                    onValueChange = vm::setLabel,
+                    label = { Text("Label") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(VialoDimens.gapMd))
+                Text(
+                    "Location",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                LocationRow(
+                    address = state.address,
+                    onChangeClick = { showLocationPicker = true },
+                )
+            }
 
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Icon",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            IconPickerCompact(
-                selectedKey = state.iconKey,
-                onIconSelected = vm::setIcon,
-            )
+            SectionSpacer()
+            SectionLabel("Style")
+            SectionLabelGap()
+            SectionCard {
+                Text(
+                    "Icon",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                IconPickerCompact(
+                    selectedKey = state.iconKey,
+                    onIconSelected = vm::setIcon,
+                )
+            }
 
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Open with",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            TransportModePicker(
-                selected = state.transportMode,
-                onSelect = vm::setTransportMode,
-            )
+            SectionSpacer()
+            SectionLabel("Behaviour")
+            SectionLabelGap()
+            SectionCard {
+                Text(
+                    "Open with",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                TransportModePicker(
+                    selected = state.transportMode,
+                    onSelect = vm::setTransportMode,
+                )
+                Spacer(Modifier.height(VialoDimens.gapMd))
+                Text(
+                    "Expires in",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
+            }
 
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Expires in",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
-
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(VialoDimens.gapXl))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
             ) {
                 OutlinedButton(
                     onClick = { showDeleteConfirm = true },
@@ -185,7 +189,7 @@ fun EditShortcutScreen(
                     Text(if (state.isSaving) "Saving…" else "Save")
                 }
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(VialoDimens.screenBottom))
         }
     }
 
@@ -233,12 +237,15 @@ private fun LocationRow(
     onChangeClick: () -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(VialoDimens.cornerMd),
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.padding(
+                horizontal = VialoDimens.gapMd + 2.dp,
+                vertical = VialoDimens.gapSm + 2.dp,
+            ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -262,17 +269,17 @@ private fun LocationPickerSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(horizontal = VialoDimens.screenH, vertical = VialoDimens.gapSm)) {
             Text(
                 "Change location",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 12.dp),
+                modifier = Modifier.padding(bottom = VialoDimens.gapMd),
             )
             PlaceSearchField(
                 onPlaceSelected = onSelected,
                 onSearch = onSearch,
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(VialoDimens.gapLg))
         }
     }
 }

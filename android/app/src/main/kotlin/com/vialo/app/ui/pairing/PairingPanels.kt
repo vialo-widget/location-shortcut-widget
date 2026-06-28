@@ -17,7 +17,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.SupervisorAccount
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -38,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -49,6 +50,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.data.pairing.InboundInvite
 import com.vialo.app.data.pairing.Pair
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.components.EmptyState
+import com.vialo.app.ui.components.SectionLabel
+import com.vialo.app.ui.theme.VialoDimens
 
 /**
  * Caree tab body — shows any pending invites the server has on file, the
@@ -74,8 +78,6 @@ fun CareePanel(
     val snackbar = remember { SnackbarHostState() }
     var confirmRemove by remember { mutableStateOf<Pair?>(null) }
 
-    // Pull fresh inbox/pairs every time the user comes back to this tab so
-    // a missed FCM push doesn't permanently hide a pending invite.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         vm.refresh()
     }
@@ -98,20 +100,29 @@ fun CareePanel(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = VialoDimens.screenH),
         ) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(VialoDimens.screenTop))
             if (state.inbox.isEmpty() && state.asCaree.isEmpty()) {
-                EmptyCareeBlurb(modifier = Modifier.weight(1f))
+                EmptyState(
+                    icon = Icons.Outlined.Favorite,
+                    title = "No helpers yet",
+                    body = "A family member or friend can help you keep your " +
+                        "places up to date. Tap \"Add a helper\" to start.",
+                    modifier = Modifier.weight(1f),
+                )
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
+                    contentPadding = PaddingValues(vertical = VialoDimens.gapLg - 4.dp),
                     modifier = Modifier.weight(1f),
                 ) {
                     if (state.inbox.isNotEmpty()) {
                         item(key = "inbox-header") {
-                            SectionLabel("Pending requests")
+                            SectionLabel(
+                                "Pending requests",
+                                modifier = Modifier.padding(vertical = VialoDimens.gapXs),
+                            )
                         }
                         items(state.inbox, key = { "inbox-${it.pendingId}" }) { invite ->
                             PendingInviteRow(
@@ -122,7 +133,10 @@ fun CareePanel(
                     }
                     if (state.asCaree.isNotEmpty()) {
                         item(key = "helpers-header") {
-                            SectionLabel("Your helpers")
+                            SectionLabel(
+                                "Your helpers",
+                                modifier = Modifier.padding(vertical = VialoDimens.gapXs),
+                            )
                         }
                         items(state.asCaree, key = { "helper-${it.id}" }) { pair ->
                             HelperRow(
@@ -133,14 +147,14 @@ fun CareePanel(
                     }
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.gapMd))
             Button(
                 onClick = onAddHelper,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Add a helper", style = MaterialTheme.typography.titleMedium)
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(VialoDimens.screenBottom))
         }
         SnackbarHost(
             hostState = snackbar,
@@ -196,21 +210,29 @@ fun CarerPanel(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = VialoDimens.screenH),
     ) {
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(VialoDimens.screenTop))
         if (state.asCarer.isEmpty()) {
-            EmptyCarerBlurb(modifier = Modifier.weight(1f))
+            EmptyState(
+                icon = Icons.Outlined.SupervisorAccount,
+                title = "You're not helping anyone yet",
+                body = "Ask the person you want to help to open Vialo, turn on " +
+                    "Caree mode in Settings, then tap \"Add a helper\" on their " +
+                    "Caree tab to read you a 6-digit code.",
+                modifier = Modifier.weight(1f),
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = VialoDimens.gapLg - 4.dp),
+                verticalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
             ) {
                 item(key = "carees-header") {
                     SectionLabel(
-                        "You're helping ${state.asCarer.size} " +
+                        text = "You're helping ${state.asCarer.size} " +
                             (if (state.asCarer.size == 1) "person" else "people"),
+                        modifier = Modifier.padding(vertical = VialoDimens.gapXs),
                     )
                 }
                 items(state.asCarer, key = { it.id }) { p ->
@@ -221,53 +243,15 @@ fun CarerPanel(
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(VialoDimens.gapMd))
         Button(
             onClick = onAddCaree,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Help someone", style = MaterialTheme.typography.titleMedium)
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(VialoDimens.screenBottom))
     }
-}
-
-@Composable
-private fun EmptyCarerBlurb(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 36.dp, bottom = 16.dp),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "You're not helping anyone yet",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Ask the person you want to help to open Vialo, turn on " +
-                    "Caree mode in Settings, then tap \"Add a helper\" on " +
-                    "their Caree tab. They will read you a 6-digit code.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
-    )
 }
 
 @Composable
@@ -286,15 +270,15 @@ private fun PendingInviteRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = VialoDimens.gapLg - 4.dp, vertical = VialoDimens.gapMd + 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
         ) {
             Icon(
                 Icons.Outlined.PersonAdd,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(VialoDimens.iconMd),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -329,7 +313,7 @@ private fun CareeRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = VialoDimens.gapLg, vertical = VialoDimens.gapMd + 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -367,7 +351,12 @@ private fun HelperRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 8.dp, top = 14.dp, bottom = 14.dp),
+                .padding(
+                    start = VialoDimens.gapLg,
+                    end = VialoDimens.gapSm,
+                    top = VialoDimens.gapMd + 2.dp,
+                    bottom = VialoDimens.gapMd + 2.dp,
+                ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -384,32 +373,6 @@ private fun HelperRow(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun EmptyCareeBlurb(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 36.dp, bottom = 16.dp),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "No one is helping you yet",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "A family member or friend can help you add and update " +
-                    "places on your Vialo. Tap \"Add a helper\" to start.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
         }
     }
 }

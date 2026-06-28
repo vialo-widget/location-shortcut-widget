@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Settings
@@ -33,8 +34,6 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,7 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,9 +54,12 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.data.model.Shortcut
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.components.EmptyState
 import com.vialo.app.ui.components.ShortcutTile
+import com.vialo.app.ui.components.VialoTopBar
 import com.vialo.app.ui.pairing.CareePanel
 import com.vialo.app.ui.pairing.CarerPanel
+import com.vialo.app.ui.theme.VialoDimens
 import kotlinx.coroutines.launch
 
 private enum class HomeTab(val title: String, val icon: ImageVector) {
@@ -110,22 +111,14 @@ fun HomeScreen(
         containerColor = Color.Transparent,
         topBar = {
             Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Vialo",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
+                VialoTopBar(
+                    title = "Vialo",
+                    titleStyle = MaterialTheme.typography.headlineSmall,
                     actions = {
                         IconButton(onClick = onOpenSettings) {
                             Icon(Icons.Outlined.Settings, contentDescription = "Settings")
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                    ),
                 )
                 if (tabs.size > 1) {
                     HomeTabRow(
@@ -182,8 +175,6 @@ private fun HomeTabRow(
     onTabSelected: (Int) -> Unit,
 ) {
     val safeIndex = selectedIndex.coerceIn(0, tabs.lastIndex)
-    // Material 3 TabRow uses colorScheme.primary for the selected tint and
-    // onSurfaceVariant for the rest — both adapt to light/dark automatically.
     TabRow(
         selectedTabIndex = safeIndex,
         containerColor = Color.Transparent,
@@ -198,23 +189,16 @@ private fun HomeTabRow(
         },
     ) {
         tabs.forEachIndexed { index, tab ->
-            val selected = index == safeIndex
             Tab(
-                selected = selected,
+                selected = index == safeIndex,
                 onClick = { onTabSelected(index) },
                 selectedContentColor = MaterialTheme.colorScheme.primary,
                 unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 icon = {
-                    Icon(
-                        imageVector = tab.icon,
-                        contentDescription = tab.title,
-                    )
+                    Icon(imageVector = tab.icon, contentDescription = tab.title)
                 },
                 text = {
-                    Text(
-                        tab.title,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    Text(tab.title, style = MaterialTheme.typography.labelLarge)
                 },
             )
         }
@@ -229,13 +213,10 @@ private fun MyLocationsTab(
     onLongPress: (Shortcut) -> Unit,
     onAddShortcut: () -> Unit,
 ) {
-    // Stack: grid (or loading / empty state) fills the remaining space,
-    // followed by a bottom-aligned "Add shortcut" button that visually
-    // matches "Add a helper" and "Help someone" on the other tabs.
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = VialoDimens.screenH),
     ) {
         when {
             state.isLoading -> Box(
@@ -245,16 +226,20 @@ private fun MyLocationsTab(
                 Text("Loading…", color = MaterialTheme.colorScheme.onSurface)
             }
 
-            state.shortcuts.isEmpty() -> EmptyHomeState(
+            state.shortcuts.isEmpty() -> EmptyState(
+                icon = Icons.Outlined.Place,
+                title = "No places yet",
+                body = "Tap \"Add shortcut\" below to save your first place. " +
+                    "One tap from your home screen, you're on your way.",
                 modifier = Modifier.weight(1f).fillMaxSize(),
             )
 
             else -> LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.weight(1f).fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = VialoDimens.gapMd),
+                horizontalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
+                verticalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
             ) {
                 items(state.shortcuts, key = { it.id }) { shortcut ->
                     ShortcutTile(
@@ -265,14 +250,16 @@ private fun MyLocationsTab(
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(VialoDimens.gapMd))
         Button(
             onClick = onAddShortcut,
             modifier = Modifier.fillMaxWidth(),
         ) {
+            Icon(Icons.Outlined.Add, contentDescription = null)
+            Spacer(Modifier.padding(start = VialoDimens.gapSm))
             Text("Add shortcut", style = MaterialTheme.typography.titleMedium)
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(VialoDimens.screenBottom))
     }
 }
 
@@ -288,11 +275,11 @@ private fun ShortcutActionsSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(VialoDimens.gapLg)) {
             Text(
                 shortcut.label,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 12.dp),
+                modifier = Modifier.padding(bottom = VialoDimens.gapMd),
             )
             SheetAction("Navigate") { onNavigate() }
             SheetAction("Share") { onShare() }
@@ -308,35 +295,13 @@ private fun SheetAction(label: String, destructive: Boolean = false, onClick: ()
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp, horizontal = 4.dp),
+            .padding(vertical = VialoDimens.gapMd + 2.dp, horizontal = VialoDimens.gapXs),
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
             color = if (destructive) MaterialTheme.colorScheme.error
             else MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun EmptyHomeState(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "No shortcuts yet",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = "Tap “Add shortcut” to save your first place.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp),
         )
     }
 }

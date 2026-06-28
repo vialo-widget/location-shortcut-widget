@@ -14,20 +14,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,8 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -51,7 +47,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.data.model.Shortcut
 import com.vialo.app.service.navigation.NavigationLauncher
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.components.EmptyState
 import com.vialo.app.ui.components.ShortcutTile
+import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.VialoDimens
 
 /**
  * Carer-side per-caree screen: "Helping <name>".
@@ -96,30 +95,14 @@ fun HelpingCareeScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
-        },
+        topBar = { VialoTopBar(title = title, onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = VialoDimens.screenH),
         ) {
             when {
                 state.isLoading && state.shortcuts.isEmpty() -> Box(
@@ -128,15 +111,20 @@ fun HelpingCareeScreen(
                 ) { CircularProgressIndicator() }
 
                 state.shortcuts.isEmpty() -> EmptyState(
+                    icon = Icons.Outlined.Place,
+                    title = "No places yet",
+                    body = "Tap \"Add shortcut\" to save a place for " +
+                        "${state.careeDisplayName ?: "them"}. " +
+                        "It will appear on their Vialo right away.",
                     modifier = Modifier.weight(1f).fillMaxSize(),
                 )
 
                 else -> LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.weight(1f).fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(vertical = VialoDimens.gapMd),
+                    horizontalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
+                    verticalArrangement = Arrangement.spacedBy(VialoDimens.gapMd),
                 ) {
                     items(state.shortcuts, key = { it.id }) { shortcut ->
                         ShortcutTile(
@@ -147,14 +135,16 @@ fun HelpingCareeScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.gapMd))
             Button(
                 onClick = onAddShortcut,
                 modifier = Modifier.fillMaxWidth(),
             ) {
+                Icon(Icons.Outlined.Add, contentDescription = null)
+                Spacer(Modifier.padding(start = VialoDimens.gapSm))
                 Text("Add shortcut", style = MaterialTheme.typography.titleMedium)
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(VialoDimens.screenBottom))
         }
     }
 
@@ -189,11 +179,11 @@ private fun ShortcutActionsSheet(
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(VialoDimens.gapLg)) {
             Text(
                 shortcut.label,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 12.dp),
+                modifier = Modifier.padding(bottom = VialoDimens.gapMd),
             )
             SheetAction("Navigate") { onNavigate() }
             SheetAction("Edit") { onEdit() }
@@ -208,37 +198,13 @@ private fun SheetAction(label: String, destructive: Boolean = false, onClick: ()
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp, horizontal = 4.dp),
+            .padding(vertical = VialoDimens.gapMd + 2.dp, horizontal = VialoDimens.gapXs),
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
             color = if (destructive) MaterialTheme.colorScheme.error
             else MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            "No places yet",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            "When they add a place on their Vialo, it will show up here.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp),
         )
     }
 }

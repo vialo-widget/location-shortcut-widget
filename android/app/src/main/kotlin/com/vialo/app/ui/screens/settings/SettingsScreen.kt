@@ -17,13 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -34,8 +29,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -55,6 +47,12 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.ui.LocalActivityBridges
 import com.vialo.app.ui.LocalGraph
+import com.vialo.app.ui.components.SectionCard
+import com.vialo.app.ui.components.SectionLabel
+import com.vialo.app.ui.components.SectionLabelGap
+import com.vialo.app.ui.components.SectionSpacer
+import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.VialoDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,17 +108,7 @@ fun SettingsScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
-        },
+        topBar = { VialoTopBar(title = "Settings", onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(
@@ -128,157 +116,108 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = VialoDimens.screenH),
         ) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(VialoDimens.screenTop))
+
             SectionLabel("Widget")
-            if (!widgetPinned) {
+            SectionLabelGap()
+            SectionCard {
+                if (!widgetPinned) {
+                    SettingRow(
+                        title = "Pin widget to home screen",
+                        subtitle = "Adds a Vialo widget for one-tap navigation.",
+                        action = {
+                            Button(onClick = {
+                                val launched = bridges.requestPinWidget()
+                                pinResultMessage = if (launched) {
+                                    "Pin request sent — follow the system prompt."
+                                } else {
+                                    "Drag the Vialo widget from your launcher's widget picker."
+                                }
+                            }) { Text("Add widget") }
+                        },
+                    )
+                }
+                StyleRow(
+                    selected = state.widgetStyle,
+                    onSelect = vm::setWidgetStyle,
+                )
+            }
+
+            SectionSpacer()
+            SectionLabel("People")
+            SectionLabelGap()
+            SectionCard {
                 SettingRow(
-                    title = "Pin widget to home screen",
-                    subtitle = "Adds a Vialo widget for one-tap navigation.",
+                    title = "Caree mode",
+                    subtitle = "I want help managing my places. Adds a Caree tab on Home.",
                     action = {
-                        Button(onClick = {
-                            val launched = bridges.requestPinWidget()
-                            pinResultMessage = if (launched) {
-                                "Pin request sent — follow the system prompt."
-                            } else {
-                                "Drag the Vialo widget from your launcher's widget picker."
-                            }
-                        }) { Text("Add widget") }
+                        Switch(
+                            checked = state.careeModeEnabled,
+                            onCheckedChange = vm::setCareeModeEnabled,
+                        )
                     },
                 )
-                Spacer(Modifier.height(12.dp))
+                SettingRow(
+                    title = "Carer mode",
+                    subtitle = "I want to help someone manage their places. Adds a Carer tab on Home.",
+                    action = {
+                        Switch(
+                            checked = state.carerModeEnabled,
+                            onCheckedChange = vm::setCarerModeEnabled,
+                        )
+                    },
+                )
             }
 
-            Text(
-                "Widget style",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            val styles = listOf(
-                SettingsViewModel.STYLE_BOLD to "Bold",
-                SettingsViewModel.STYLE_GREYSCALE to "Grey",
-            )
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                styles.forEachIndexed { index, (key, label) ->
-                    SegmentedButton(
-                        selected = state.widgetStyle == key,
-                        onClick = { vm.setWidgetStyle(key) },
-                        shape = SegmentedButtonDefaults.itemShape(index, styles.size),
-                    ) { Text(label) }
-                }
-            }
-
-            /*
-            Spacer(Modifier.height(20.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(20.dp))
-            SectionLabel("Sharing")
-            SettingRow(
-                title = "Open shared links in Vialo",
-                subtitle = if (bridges.isAppLinkVerified())
-                    "Verified — shared links open the app directly."
-                else "Not verified — Android may show a chooser dialog.",
-                action = {
-                    OutlinedButton(onClick = bridges.openAppLinkSettings) {
-                        Text("Open settings")
-                    }
-                },
-            )
-            */
-
-            Spacer(Modifier.height(20.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(20.dp))
-            SectionLabel("People")
-            SettingRow(
-                title = "Caree mode",
-                subtitle = "I want help managing my places. Adds a Caree tab on Home.",
-                action = {
-                    Switch(
-                        checked = state.careeModeEnabled,
-                        onCheckedChange = vm::setCareeModeEnabled,
-                    )
-                },
-            )
-            SettingRow(
-                title = "Carer mode",
-                subtitle = "I want to help someone manage their places. Adds a Carer tab on Home.",
-                action = {
-                    Switch(
-                        checked = state.carerModeEnabled,
-                        onCheckedChange = vm::setCarerModeEnabled,
-                    )
-                },
-            )
-
-            // Permissions section: shown only when at least one permission is
-            // missing. Each row is rendered only for the missing one(s); when
-            // the user grants both, the whole section disappears on the next
-            // resume.
             val needsNotifications = !notificationsGranted &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             val needsLocation = !locationGranted
             if (needsNotifications || needsLocation) {
-                Spacer(Modifier.height(20.dp))
-                HorizontalDivider()
-                Spacer(Modifier.height(20.dp))
+                SectionSpacer()
                 SectionLabel("Permissions")
-                if (needsNotifications) {
-                    SettingRow(
-                        title = "Allow notifications",
-                        subtitle = "Get reminded a few days before a shortcut expires.",
-                        action = {
-                            OutlinedButton(onClick = {
-                                notifPermissionLauncher.launch(
-                                    Manifest.permission.POST_NOTIFICATIONS,
-                                )
-                            }) { Text("Request") }
-                        },
-                    )
-                }
-                if (needsLocation) {
-                    SettingRow(
-                        title = "Allow location access",
-                        subtitle = "Needed for \"Save where I am\" on the Add screen.",
-                        action = {
-                            OutlinedButton(onClick = {
-                                locationPermissionLauncher.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    ),
-                                )
-                            }) { Text("Request") }
-                        },
-                    )
+                SectionLabelGap()
+                SectionCard {
+                    if (needsNotifications) {
+                        SettingRow(
+                            title = "Allow notifications",
+                            subtitle = "Get reminded a few days before a shortcut expires.",
+                            action = {
+                                OutlinedButton(onClick = {
+                                    notifPermissionLauncher.launch(
+                                        Manifest.permission.POST_NOTIFICATIONS,
+                                    )
+                                }) { Text("Request") }
+                            },
+                        )
+                    }
+                    if (needsLocation) {
+                        SettingRow(
+                            title = "Allow location access",
+                            subtitle = "Needed for \"Save where I am\" on the Add screen.",
+                            action = {
+                                OutlinedButton(onClick = {
+                                    locationPermissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                                        ),
+                                    )
+                                }) { Text("Request") }
+                            },
+                        )
+                    }
                 }
             }
 
-            /*
-            Spacer(Modifier.height(20.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(20.dp))
-            SectionLabel("Maintenance")
-            SettingRow(
-                title = "Remove expired shortcuts",
-                subtitle = "Clears shortcuts whose expiry has passed.",
-                action = {
-                    OutlinedButton(onClick = vm::pruneExpired) { Text("Clear") }
-                },
-            )
-            */
-
-            Spacer(Modifier.height(20.dp))
-            HorizontalDivider()
-            Spacer(Modifier.height(20.dp))
+            SectionSpacer()
             Text(
                 "Search powered by OpenStreetMap — © OpenStreetMap contributors.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(VialoDimens.screenBottom))
         }
     }
 }
@@ -303,14 +242,38 @@ private fun isLocationGranted(context: Context): Boolean {
     return fine || coarse
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-    )
-    Spacer(Modifier.height(8.dp))
+private fun StyleRow(
+    selected: String,
+    onSelect: (String) -> Unit,
+) {
+    Column(modifier = Modifier.padding(vertical = VialoDimens.gapSm)) {
+        Text(
+            "Widget style",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            "Bold uses full-colour icons; Grey is monochrome for less visual noise.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(VialoDimens.gapSm))
+        val styles = listOf(
+            SettingsViewModel.STYLE_BOLD to "Bold",
+            SettingsViewModel.STYLE_GREYSCALE to "Grey",
+        )
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            styles.forEachIndexed { index, (key, label) ->
+                SegmentedButton(
+                    selected = selected == key,
+                    onClick = { onSelect(key) },
+                    shape = SegmentedButtonDefaults.itemShape(index, styles.size),
+                ) { Text(label) }
+            }
+        }
+    }
 }
 
 @Composable
@@ -322,8 +285,9 @@ private fun SettingRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = VialoDimens.gapSm),
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f, fill = true)) {
             Text(
@@ -337,7 +301,7 @@ private fun SettingRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(VialoDimens.gapMd))
         action()
     }
 }

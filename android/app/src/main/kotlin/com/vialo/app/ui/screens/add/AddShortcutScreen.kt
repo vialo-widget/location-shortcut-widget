@@ -1,6 +1,5 @@
 package com.vialo.app.ui.screens.add
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,25 +10,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -39,7 +33,13 @@ import com.vialo.app.ui.components.ExpiryPicker
 import com.vialo.app.ui.components.IconPickerCompact
 import com.vialo.app.ui.components.PlaceSearchField
 import com.vialo.app.ui.components.SaveBlockerDialog
+import com.vialo.app.ui.components.SectionCard
+import com.vialo.app.ui.components.SectionLabel
+import com.vialo.app.ui.components.SectionLabelGap
+import com.vialo.app.ui.components.SectionSpacer
 import com.vialo.app.ui.components.TransportModePicker
+import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.VialoDimens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +47,7 @@ fun AddShortcutScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit,
     /** When non-null, the carer is adding on this caree's behalf — writes
-     *  go through a [RemoteShortcutStore] backed by the sync backend
+     *  go through a RemoteShortcutStore backed by the sync backend
      *  instead of the local DB. */
     careeDeviceId: String? = null,
 ) {
@@ -70,101 +70,105 @@ fun AddShortcutScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = { Text("Add shortcut") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
-        },
+        topBar = { VialoTopBar(title = "Add shortcut", onBack = onBack) },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = VialoDimens.screenH)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(Modifier.height(8.dp))
-            PlaceSearchField(
-                onPlaceSelected = vm::onPlaceSelected,
-                onSearch = { vm.search(it) },
-            )
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = vm::useCurrentLocation,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Outlined.LocationOn, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Save where I am")
-            }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(VialoDimens.screenTop))
 
-            OutlinedTextField(
-                value = state.label,
-                onValueChange = vm::setLabel,
-                label = { Text("Label") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (state.address.isNotBlank()) {
-                Spacer(Modifier.height(8.dp))
+            SectionLabel("Where")
+            SectionLabelGap()
+            SectionCard {
+                PlaceSearchField(
+                    onPlaceSelected = vm::onPlaceSelected,
+                    onSearch = { vm.search(it) },
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                OutlinedButton(
+                    onClick = vm::useCurrentLocation,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Outlined.LocationOn, contentDescription = null)
+                    Spacer(Modifier.width(VialoDimens.gapSm))
+                    Text("Save where I am")
+                }
+                Spacer(Modifier.height(VialoDimens.gapMd))
+                OutlinedTextField(
+                    value = state.label,
+                    onValueChange = vm::setLabel,
+                    label = { Text("Label") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (state.address.isNotBlank()) {
+                    Spacer(Modifier.height(VialoDimens.gapSm))
+                    Text(
+                        state.address,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            SectionSpacer()
+            SectionLabel("Style")
+            SectionLabelGap()
+            SectionCard {
                 Text(
-                    state.address,
+                    "Icon",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                IconPickerCompact(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
             }
 
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Icon",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            IconPickerCompact(selectedKey = state.iconKey, onIconSelected = vm::setIcon)
-
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Open with",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            TransportModePicker(
-                selected = state.transportMode,
-                onSelect = vm::setTransportMode,
-            )
-
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "Expires in",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(8.dp))
-            ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
+            SectionSpacer()
+            SectionLabel("Behaviour")
+            SectionLabelGap()
+            SectionCard {
+                Text(
+                    "Open with",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                TransportModePicker(
+                    selected = state.transportMode,
+                    onSelect = vm::setTransportMode,
+                )
+                Spacer(Modifier.height(VialoDimens.gapMd))
+                Text(
+                    "Expires in",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(VialoDimens.gapSm))
+                ExpiryPicker(selected = state.expiryOption, onSelect = vm::setExpiry)
+            }
 
             state.error?.let {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(VialoDimens.gapMd))
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(VialoDimens.gapXl))
             Button(
                 onClick = vm::save,
                 enabled = !state.isSaving,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (state.isSaving) "Saving…" else "Save shortcut")
+                Text(
+                    if (state.isSaving) "Saving…" else "Save shortcut",
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(VialoDimens.screenBottom))
         }
     }
 
