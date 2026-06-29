@@ -3,15 +3,17 @@
   Bold widget layout — 12 fixed-size 1×1-icon tiles in a GridLayout.
 
   The grid's columnCount is set at runtime by
-  ShortcutWidgetProvider#buildBoldViews based on the current widget width,
+  ShortcutWidgetProvider#buildRemoteViews based on the current widget width,
   so the tiles wrap into as many columns as fit and the remainder are
   hidden via View.GONE. Each tile is a fixed 80 dp × 80 dp with a 48 dp
   icon — no weight, no resizing — that's the "1×1 icon, no resizing"
   behaviour. SLOT_DP in ShortcutWidgetProvider must stay in sync with
   the 80dp value here.
 
-  An outer FrameLayout centres the grid so leftover space sits as an even
-  margin around the tiles rather than collecting on one side.
+  Each slot is a FrameLayout so a transport-mode badge ("Drive" /
+  "Transit" / "Taxi") can sit in the top-right corner, overlaid on the
+  rounded-tile background, without disturbing the centred icon+label
+  column underneath.
 
   rowCount=2 and columnCount=6 in XML are defaults for the layout preview
   in Android Studio; runtime overrides them through setInt("setColumnCount", …).
@@ -30,449 +32,725 @@
         android:padding="2dp"
         android:useDefaultMargins="false">
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/slot_0"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_0"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_0"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_0"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_1"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_1"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_1"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_1"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_2"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_2"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_2"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_3"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_3"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_3"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_3"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_4"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_4"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_4"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_4"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_5"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_5"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_5"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_5"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_6"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_6"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_6"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_6"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_7"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_7"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_7"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_7"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_8"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_8"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_8"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_8"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_9"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_9"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_9"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_9"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_9"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_10"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_10"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_10"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_10"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_10"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
 
-        <LinearLayout
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/slot_11"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_margin="2dp"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="6dp"
             android:background="@drawable/widget_bold_bg"
             android:foreground="@drawable/widget_bold_overlay"
             android:foregroundGravity="fill"
             android:visibility="gone">
-            <ImageView
-                android:id="@+id/icon_11"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:tint="#FFFFFFFF"
-                android:src="@android:drawable/ic_menu_mylocation" />
-            <TextView
-                android:id="@+id/label_11"
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:textSize="10sp"
+                android:padding="6dp">
+                <ImageView
+                    android:id="@+id/icon_11"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"
+                    android:tint="#FFFFFFFF"
+                    android:src="@android:drawable/ic_menu_mylocation" />
+                <TextView
+                    android:id="@+id/label_11"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFFFF"
+                    android:shadowColor="#66000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/mode_11"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="3dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="1dp"
+                android:paddingBottom="1dp"
+                android:textSize="8sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFFFF"
-                android:shadowColor="#66000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
+                android:background="@drawable/widget_mode_badge"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:paddingTop="2dp" />
-        </LinearLayout>
+                android:includeFontPadding="false" />
+
+        </FrameLayout>
 
     </GridLayout>
 </FrameLayout>

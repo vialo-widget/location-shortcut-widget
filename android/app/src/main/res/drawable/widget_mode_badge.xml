@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Background pill behind the transport-mode label ("Drive" / "Transit" /
+  "Taxi") in the top-right corner of each widget tile.
+
+  Translucent black so the badge reads on every palette slot the tile
+  background can cycle through (light Indigo to dark Zinc) without
+  needing a per-slot tint. Small radius — the badge is ~14dp tall.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#99000000" />
+    <corners android:radius="6dp" />
+</shape>

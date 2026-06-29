@@ -46,21 +46,26 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         /** Hard cap — the layout ships 12 slot views (6 × 2). */
         private const val MAX_SLOTS = 12
 
-        private data class SlotIds(val container: Int, val icon: Int, val label: Int)
+        private data class SlotIds(
+            val container: Int,
+            val icon: Int,
+            val label: Int,
+            val mode: Int,
+        )
 
         private val slots = listOf(
-            SlotIds(R.id.slot_0, R.id.icon_0, R.id.label_0),
-            SlotIds(R.id.slot_1, R.id.icon_1, R.id.label_1),
-            SlotIds(R.id.slot_2, R.id.icon_2, R.id.label_2),
-            SlotIds(R.id.slot_3, R.id.icon_3, R.id.label_3),
-            SlotIds(R.id.slot_4, R.id.icon_4, R.id.label_4),
-            SlotIds(R.id.slot_5, R.id.icon_5, R.id.label_5),
-            SlotIds(R.id.slot_6, R.id.icon_6, R.id.label_6),
-            SlotIds(R.id.slot_7, R.id.icon_7, R.id.label_7),
-            SlotIds(R.id.slot_8, R.id.icon_8, R.id.label_8),
-            SlotIds(R.id.slot_9, R.id.icon_9, R.id.label_9),
-            SlotIds(R.id.slot_10, R.id.icon_10, R.id.label_10),
-            SlotIds(R.id.slot_11, R.id.icon_11, R.id.label_11),
+            SlotIds(R.id.slot_0, R.id.icon_0, R.id.label_0, R.id.mode_0),
+            SlotIds(R.id.slot_1, R.id.icon_1, R.id.label_1, R.id.mode_1),
+            SlotIds(R.id.slot_2, R.id.icon_2, R.id.label_2, R.id.mode_2),
+            SlotIds(R.id.slot_3, R.id.icon_3, R.id.label_3, R.id.mode_3),
+            SlotIds(R.id.slot_4, R.id.icon_4, R.id.label_4, R.id.mode_4),
+            SlotIds(R.id.slot_5, R.id.icon_5, R.id.label_5, R.id.mode_5),
+            SlotIds(R.id.slot_6, R.id.icon_6, R.id.label_6, R.id.mode_6),
+            SlotIds(R.id.slot_7, R.id.icon_7, R.id.label_7, R.id.mode_7),
+            SlotIds(R.id.slot_8, R.id.icon_8, R.id.label_8, R.id.mode_8),
+            SlotIds(R.id.slot_9, R.id.icon_9, R.id.label_9, R.id.mode_9),
+            SlotIds(R.id.slot_10, R.id.icon_10, R.id.label_10, R.id.mode_10),
+            SlotIds(R.id.slot_11, R.id.icon_11, R.id.label_11, R.id.mode_11),
         )
 
         /** Tile backgrounds for the default "bold" style — six Tailwind 600
@@ -129,6 +134,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
                     val sc = shortcuts.getJSONObject(i)
                     val label = sc.getString("label")
                     val iconName = sc.optString("iconName", "place")
+                    val mode = TransportMode.fromName(sc.optString("transportMode"))
                     views.setViewVisibility(slot.container, View.VISIBLE)
                     views.setTextViewText(slot.label, label)
                     views.setImageViewResource(slot.icon, getIconRes(context, iconName))
@@ -136,6 +142,10 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
                         slot.container, "setBackgroundResource",
                         palette[i % palette.size],
                     )
+                    // Corner badge with the mode label so the user can tell
+                    // at a glance which app the tap will open.
+                    views.setTextViewText(slot.mode, modeBadgeText(mode))
+                    views.setViewVisibility(slot.mode, View.VISIBLE)
                     views.setOnClickPendingIntent(
                         slot.container,
                         launchPendingIntent(context, i, sc),
@@ -150,6 +160,17 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
         private fun parseShortcuts(widgetData: SharedPreferences): JSONArray {
             val json = widgetData.getString("shortcuts_json", "[]") ?: "[]"
             return JSONArray(json)
+        }
+
+        /** Short label shown in the top-right corner of each tile so users
+         *  can tell at a glance which app a tap will open. Kept to a single
+         *  word each — "Drive" / "Transit" / "Taxi" — so the badge stays
+         *  narrow on the 80dp tile. "Transit" covers the full Google Maps
+         *  transit mode (bus + train + tram + metro). */
+        private fun modeBadgeText(mode: TransportMode): String = when (mode) {
+            TransportMode.DRIVE -> "Drive"
+            TransportMode.TRANSIT -> "Transit"
+            TransportMode.UBER -> "Taxi"
         }
 
         /** Build the right launch Intent for the tile's transport mode and
