@@ -51,6 +51,7 @@ import com.vialo.app.ui.components.EmptyState
 import com.vialo.app.ui.components.ShortcutTile
 import com.vialo.app.ui.components.VialoTopBar
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 
 /**
  * Carer-side per-caree screen: "Helping <name>".
@@ -138,7 +139,7 @@ fun HelpingCareeScreen(
             Spacer(Modifier.height(VialoDimens.gapMd))
             Button(
                 onClick = onAddShortcut,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = null)
                 Spacer(Modifier.padding(start = VialoDimens.gapSm))

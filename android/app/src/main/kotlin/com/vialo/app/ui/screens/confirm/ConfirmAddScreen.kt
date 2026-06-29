@@ -44,6 +44,7 @@ import com.vialo.app.ui.components.IconPickerCompact
 import com.vialo.app.ui.components.SaveBlockerDialog
 import com.vialo.app.ui.icons.ShortcutIcon
 import com.vialo.app.ui.icons.ShortcutIconCatalog
+import com.vialo.app.ui.theme.ctaSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,14 +162,17 @@ fun ConfirmAddScreen(
             ) {
                 OutlinedButton(
                     onClick = onBack,
-                    modifier = Modifier.weight(1f),
-                ) { Text("Cancel") }
+                    modifier = Modifier.weight(1f).ctaSize(),
+                ) { Text("Cancel", style = MaterialTheme.typography.titleMedium) }
                 Button(
                     onClick = vm::confirm,
                     enabled = !state.isSaving,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).ctaSize(),
                 ) {
-                    Text(if (state.isSaving) "Saving…" else "Add to home")
+                    Text(
+                        if (state.isSaving) "Saving…" else "Add to home",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                 }
             }
             Spacer(Modifier.height(24.dp))

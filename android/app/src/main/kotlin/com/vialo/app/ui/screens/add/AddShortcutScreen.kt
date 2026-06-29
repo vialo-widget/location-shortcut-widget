@@ -40,6 +40,7 @@ import com.vialo.app.ui.components.SectionSpacer
 import com.vialo.app.ui.components.TransportModePicker
 import com.vialo.app.ui.components.VialoTopBar
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,7 +162,7 @@ fun AddShortcutScreen(
             Button(
                 onClick = vm::save,
                 enabled = !state.isSaving,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
             ) {
                 Text(
                     if (state.isSaving) "Saving…" else "Save shortcut",

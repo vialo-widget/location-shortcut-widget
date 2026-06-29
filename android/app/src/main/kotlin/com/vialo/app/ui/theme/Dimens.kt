@@ -1,5 +1,7 @@
 package com.vialo.app.ui.theme
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
@@ -44,6 +46,12 @@ object VialoDimens {
     /** Minimum touch target — guideline floor for any tappable area. */
     val touchTarget = 48.dp
 
+    /** Min-height for a full-width primary / outlined CTA. M3's default
+     *  Button comes out around 40 dp tall which feels stingy at the bottom
+     *  of a screen; 56 dp matches the FAB hierarchy and gives the CTA
+     *  proportional presence next to the surrounding form. */
+    val ctaHeight = 56.dp
+
     /** Standard ImageVector icon size inside chips, list rows, etc. */
     val iconSm = 20.dp
     val iconMd = 28.dp
@@ -54,3 +62,10 @@ object VialoDimens {
      *  overlay so the "this is what matters" element has presence. */
     val avatarLg = 96.dp
 }
+
+/**
+ * Modifier shorthand for a primary or outlined bottom-of-screen CTA — sets
+ * a min height so the button reads as a substantive action, not a thin
+ * pill. Apply after `.fillMaxWidth()`.
+ */
+fun Modifier.ctaSize(): Modifier = this.heightIn(min = VialoDimens.ctaHeight)

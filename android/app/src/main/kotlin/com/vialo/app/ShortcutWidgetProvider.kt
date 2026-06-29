@@ -10,7 +10,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
+import com.vialo.app.data.model.TransportMode
 import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.math.min
 
 /** SharedPreferences file carried over from the Flutter build — the widget
@@ -136,10 +138,7 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
                     )
                     views.setOnClickPendingIntent(
                         slot.container,
-                        navPendingIntent(
-                            context, i,
-                            sc.getDouble("latitude"), sc.getDouble("longitude"),
-                        ),
+                        launchPendingIntent(context, i, sc),
                     )
                 } else {
                     views.setViewVisibility(slot.container, View.GONE)
@@ -153,16 +152,59 @@ class ShortcutWidgetProvider : AppWidgetProvider() {
             return JSONArray(json)
         }
 
-        private fun navPendingIntent(
+        /** Build the right launch Intent for the tile's transport mode and
+         *  wrap it in a PendingIntent. Mirrors the in-app
+         *  [com.vialo.app.service.navigation.NavigationLauncher] dispatch:
+         *
+         *  - DRIVE   → `google.navigation:` (Google Maps, turn-by-turn)
+         *  - TRANSIT → Maps URLs `travelmode=transit` (Google Maps app if
+         *              installed, browser otherwise)
+         *  - UBER    → m.uber.com universal link (Uber app if installed,
+         *              web flow otherwise)
+         *
+         *  The widget host launches PendingIntents without our fallback
+         *  resolution, so we pick a single best-fit URI per mode and let
+         *  Android route it. DRIVE keeps its explicit package because
+         *  Google Maps is effectively always present on the kind of
+         *  phones this widget runs on.
+         */
+        private fun launchPendingIntent(
             context: Context,
             requestCode: Int,
-            lat: Double,
-            lng: Double,
+            shortcut: JSONObject,
         ): PendingIntent {
-            val intent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("google.navigation:q=$lat,$lng"),
-            ).apply { setPackage("com.google.android.apps.maps") }
+            val lat = shortcut.getDouble("latitude")
+            val lng = shortcut.getDouble("longitude")
+            val mode = TransportMode.fromName(shortcut.optString("transportMode"))
+            val intent = when (mode) {
+                TransportMode.DRIVE -> Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("google.navigation:q=$lat,$lng"),
+                ).apply { setPackage("com.google.android.apps.maps") }
+                TransportMode.TRANSIT -> Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(
+                        "https://www.google.com/maps/dir/?api=1" +
+                            "&destination=$lat,$lng&travelmode=transit",
+                    ),
+                )
+                TransportMode.UBER -> {
+                    val label = shortcut.optString("label")
+                    val address = shortcut.optString("address")
+                    val builder = Uri.parse("https://m.uber.com/ul/").buildUpon()
+                        .appendQueryParameter("action", "setPickup")
+                        .appendQueryParameter("pickup", "my_location")
+                        .appendQueryParameter("dropoff[latitude]", lat.toString())
+                        .appendQueryParameter("dropoff[longitude]", lng.toString())
+                    if (label.isNotBlank()) {
+                        builder.appendQueryParameter("dropoff[nickname]", label)
+                    }
+                    if (address.isNotBlank()) {
+                        builder.appendQueryParameter("dropoff[formatted_address]", address)
+                    }
+                    Intent(Intent.ACTION_VIEW, builder.build())
+                }
+            }
             return PendingIntent.getActivity(
                 context, requestCode, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,

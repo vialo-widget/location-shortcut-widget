@@ -53,6 +53,7 @@ import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.components.EmptyState
 import com.vialo.app.ui.components.SectionLabel
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 
 /**
  * Caree tab body — shows any pending invites the server has on file, the
@@ -150,7 +151,7 @@ fun CareePanel(
             Spacer(Modifier.height(VialoDimens.gapMd))
             Button(
                 onClick = onAddHelper,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
             ) {
                 Text("Add a helper", style = MaterialTheme.typography.titleMedium)
             }
@@ -246,7 +247,7 @@ fun CarerPanel(
         Spacer(Modifier.height(VialoDimens.gapMd))
         Button(
             onClick = onAddCaree,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().ctaSize(),
         ) {
             Text("Help someone", style = MaterialTheme.typography.titleMedium)
         }

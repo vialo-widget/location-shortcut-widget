@@ -60,6 +60,7 @@ import com.vialo.app.ui.components.VialoTopBar
 import com.vialo.app.ui.pairing.CareePanel
 import com.vialo.app.ui.pairing.CarerPanel
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 import kotlinx.coroutines.launch
 
 private enum class HomeTab(val title: String, val icon: ImageVector) {
@@ -253,7 +254,7 @@ private fun MyLocationsTab(
         Spacer(Modifier.height(VialoDimens.gapMd))
         Button(
             onClick = onAddShortcut,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().ctaSize(),
         ) {
             Icon(Icons.Outlined.Add, contentDescription = null)
             Spacer(Modifier.padding(start = VialoDimens.gapSm))

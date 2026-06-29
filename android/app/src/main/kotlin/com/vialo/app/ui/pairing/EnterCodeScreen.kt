@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.components.VialoTopBar
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 
 /**
  * Carer enters the 6-digit code their caree gave them, plus the two display
@@ -128,7 +129,7 @@ fun EnterCodeScreen(
                     vm.redeemCode(code, carerName.trim(), careeName.trim())
                 },
                 enabled = canSubmit,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
             ) {
                 Text(
                     if (status is PairingViewModel.Status.Working) "Sending…" else "Send request",

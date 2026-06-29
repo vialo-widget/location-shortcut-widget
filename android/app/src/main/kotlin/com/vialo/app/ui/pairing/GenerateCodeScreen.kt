@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.components.VialoTopBar
+import com.vialo.app.ui.theme.ctaSize
 import kotlinx.coroutines.delay
 
 /**
@@ -143,7 +144,7 @@ fun GenerateCodeScreen(onBack: () -> Unit) {
             if (expired || code == null) {
                 Button(
                     onClick = { vm.generateCode() },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().ctaSize(),
                 ) {
                     Icon(Icons.Outlined.Refresh, contentDescription = null)
                     Spacer(Modifier.height(0.dp))
@@ -158,7 +159,7 @@ fun GenerateCodeScreen(onBack: () -> Unit) {
                         onClick = {
                             clipboard.setText(AnnotatedString(code.code))
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).ctaSize(),
                     ) {
                         Icon(Icons.Outlined.ContentCopy, contentDescription = null)
                         Text("  Copy")
@@ -175,7 +176,7 @@ fun GenerateCodeScreen(onBack: () -> Unit) {
                             }
                             context.startActivity(Intent.createChooser(intent, null))
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).ctaSize(),
                     ) {
                         Icon(Icons.Outlined.Share, contentDescription = null)
                         Text("  Send")

@@ -66,6 +66,7 @@ import com.vialo.app.ui.components.SectionLabel
 import com.vialo.app.ui.components.SectionLabelGap
 import com.vialo.app.ui.components.SectionSpacer
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 import kotlinx.coroutines.launch
 
 /**
@@ -221,7 +222,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
             Spacer(Modifier.height(VialoDimens.gapXl))
             Button(
                 onClick = finishOnboarding,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
             ) {
                 Text("Get started", style = MaterialTheme.typography.titleMedium)
             }

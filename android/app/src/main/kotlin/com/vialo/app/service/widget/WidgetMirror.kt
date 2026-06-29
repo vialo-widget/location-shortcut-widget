@@ -69,6 +69,10 @@ class WidgetMirror(private val context: Context) {
         put("placeId", placeId)
         put("iconName", iconName)
         put("sortOrder", sortOrder)
+        // Persisted as the enum name; the widget reads this to decide which
+        // app to launch on tap. Older mirrored snapshots without the field
+        // fall through to TransportMode.DRIVE in ShortcutWidgetProvider.
+        put("transportMode", transportMode.name)
     }
 
     companion object {

@@ -37,6 +37,7 @@ import com.vialo.app.data.pairing.InboundInvite
 import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.components.VialoTopBar
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 
 /**
  * Caree's accept/reject screen, addressed by a specific [pendingId].
@@ -153,14 +154,14 @@ fun AcceptInviteScreen(
                 Spacer(Modifier.weight(1f))
                 Button(
                     onClick = { vm.acceptInvite(invite.pendingId, onAccepted = { onDone() }) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().ctaSize(),
                 ) {
                     Text("Accept", style = MaterialTheme.typography.titleMedium)
                 }
                 Spacer(Modifier.height(VialoDimens.gapSm))
                 OutlinedButton(
                     onClick = { vm.rejectInvite(invite.pendingId, onRejected = { onDone() }) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().ctaSize(),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
                     ),

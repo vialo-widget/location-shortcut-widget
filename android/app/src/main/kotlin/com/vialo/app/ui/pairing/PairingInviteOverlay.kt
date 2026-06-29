@@ -38,6 +38,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.vialo.app.data.pairing.InboundInvite
 import com.vialo.app.ui.LocalGraph
 import com.vialo.app.ui.theme.VialoDimens
+import com.vialo.app.ui.theme.ctaSize
 
 /**
  * Full-page in-app prompt shown to the caree whenever a carer has a
@@ -141,7 +142,7 @@ fun PairingInviteOverlay(
             Button(
                 onClick = { vm.acceptInvite(nextInvite.pendingId) },
                 enabled = !working,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
             ) {
                 Text(
                     if (working) "Working…" else "Accept",
@@ -152,7 +153,7 @@ fun PairingInviteOverlay(
             OutlinedButton(
                 onClick = { vm.rejectInvite(nextInvite.pendingId) },
                 enabled = !working,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().ctaSize(),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error,
                 ),
